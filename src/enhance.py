@@ -95,7 +95,19 @@ def msr(ch, sigmas=(15, 80, 250), low_pct=1.0, high_pct=99.0):
     return _stretch(r, low_pct, high_pct)
 
 
+def illum_flatten(ch, sigma=60, alpha=0.3):
+    """Koreksi iluminasi lokal parsial: out = I · (mean(L) / L)^alpha, L = G_σ * I.
+
+    alpha = 0 tidak mengubah apa pun; alpha = 1 meratakan iluminasi penuh (mirip SSR
+    tanpa log). Nilai kecil meredam gradien cahaya tanpa membuat citra datar.
+    """
+    i = ch.astype(np.float32) + 1.0
+    light = cv2.GaussianBlur(i, (0, 0), sigma)
+    return _to_u8(i * (light.mean() / light) ** alpha - 1.0)
+
+
 CONTRAST = {
+    "illum_flatten": illum_flatten,
     "gamma": gamma,
     "adaptive_gamma": adaptive_gamma,
     "hist_eq": hist_eq,

@@ -1,0 +1,593 @@
+<!doctype html><html lang='id'><head><meta charset='utf-8'><title>Laporan UTS PCD</title><style>
+@page { size: A4; margin: 17mm 17mm 16mm 17mm; }
+body { font-family: "Segoe UI", "DejaVu Sans", Arial, sans-serif; font-size: 10pt; line-height: 1.42;
+       color: #0b0b0b; }
+h1 { font-size: 16pt; margin: 0 0 2pt; }
+h2 { font-size: 13pt; margin: 14pt 0 5pt; border-bottom: 1px solid #c3c2b7; padding-bottom: 2pt;
+     break-after: avoid; }
+h3 { font-size: 11pt; margin: 10pt 0 4pt; break-after: avoid; }
+p, li { margin: 3pt 0; text-align: justify; }
+ul, ol { padding-left: 18pt; margin: 3pt 0; }
+table { border-collapse: collapse; width: 100%; margin: 6pt 0; font-size: 8.6pt; break-inside: avoid; }
+th, td { border: 1px solid #c3c2b7; padding: 2.5pt 4pt; vertical-align: top; text-align: left; }
+th { background: #f1f0ec; }
+figure { margin: 8pt 0; text-align: center; break-inside: avoid; }
+figure img { max-width: 100%; }
+figcaption { font-size: 8.6pt; color: #52514e; margin-top: 2pt; }
+code { font-family: Consolas, "DejaVu Sans Mono", monospace; font-size: 8.8pt; background: #f1f0ec;
+       padding: 0 2pt; }
+pre { background: #f1f0ec; padding: 6pt; font-size: 8.6pt; }
+.meta { color: #52514e; font-size: 9.5pt; margin-bottom: 8pt; }
+.meta td, .meta th { border: none; padding: 1pt 8pt 1pt 0; }
+.pipe { display: flex; gap: 6pt; margin: 8pt 0; break-inside: avoid; }
+.pipe > div { flex: 1; border: 1.5px solid #2a78d6; border-radius: 4pt; padding: 5pt; font-size: 8.6pt;
+              text-align: center; background: #f4f8fd; position: relative; }
+.pipe > div:not(:last-child)::after { content: "→"; position: absolute; right: -9pt; top: 40%;
+                                      color: #2a78d6; font-weight: bold; }
+.appendix { break-before: page; }
+</style></head><body>
+<h1>Pipeline Peningkatan Kualitas Citra Minim Cahaya dan Berderau</h1>
+<table class="meta">
+<tr><td>Mata kuliah</td><td>Pengolahan Citra Digital, Teknik Informatika - UTS (take-home)</td></tr>
+<tr><td>Topik</td><td>No. 6: Peningkatan kualitas citra minim cahaya atau berderau</td></tr>
+<tr><td>Kelompok</td><td>[isi nama kelompok dan anggota]</td></tr>
+<tr><td>Tanggal</td><td>13-10-2026</td></tr>
+<tr><td>Repository</td><td>[isi tautan]</td></tr>
+</table>
+<h2>1. Pendahuluan</h2>
+<p>Foto yang diambil dalam cahaya minim memiliki luminans rendah, rentang kontras
+sempit, dan pada ISO tinggi derau yang kuat. Mencerahkan citra secara langsung
+ikut menguatkan derau dan dapat memudarkan atau menggeser warna, sehingga
+pemilihan dan urutan operasi menentukan hasil.</p>
+<p>Project ini membangun pipeline pengolahan citra <strong>klasik</strong> (tanpa deep learning
+dan tanpa model pra-latih) untuk memperbaiki citra minim cahaya/berderau, lalu
+mengukurnya terhadap citra acuan dari adegan yang sama dengan pencahayaan baik.
+Tujuannya bukan skor tertinggi, melainkan keputusan rancangan yang didukung angka:</p>
+<ol>
+<li>merancang pipeline ≥ 4 tahap yang sesuai karakteristik tiap kondisi;</li>
+<li>mengimplementasikan ekualisasi histogram dan filter median dari nol (NumPy)
+   dan membuktikan kesetaraannya dengan OpenCV;</li>
+<li>membandingkan beberapa metode per tahap dengan PSNR, SSIM, dan ΔE2000
+   serta uji Wilcoxon;</li>
+<li>menganalisis kasus gagal dan mengusulkan perbaikan.</li>
+</ol>
+<p>Seluruh parameter disetel hanya pada 6 skenario dev; angka akhir dilaporkan
+hanya dari 4 skenario uji yang tidak pernah dipakai saat tuning.</p>
+<h2>2. Dasar teori singkat</h2>
+<p><strong>Koreksi gamma.</strong> Pemetaan titik <i>s</i> = 255·(<i>r</i>/255)<sup>γ</sup>. Nilai
+γ &lt; 1 mencerahkan area gelap lebih kuat daripada area terang. <em>Gamma adaptif</em>
+memilih γ per citra agar rata-rata luminans ternormalisasi μ menjadi target
+<i>t</i>: γ = ln <i>t</i> / ln μ, sehingga μ<sup>γ</sup> = <i>t</i>.</p>
+<p><strong>Ekualisasi histogram (HE).</strong> Memetakan intensitas dengan fungsi distribusi
+kumulatif (CDF) sehingga histogram keluaran mendekati seragam:
+<i>s<sub>k</sub></i> = round((cdf(<i>k</i>) − cdf<sub>min</sub>) / (<i>N</i> − cdf<sub>min</sub>) · 255).
+<strong>CLAHE</strong> melakukan HE per ubin dengan histogram yang dipotong pada <em>clip limit</em>
+untuk membatasi penguatan derau, lalu menginterpolasi antar-ubin.</p>
+<p><strong>Retinex (SSR/MSR).</strong> Menganggap citra sebagai hasil kali iluminasi dan
+reflektansi; iluminasi diperkirakan dengan blur Gaussian besar sehingga
+<i>R</i> = log <i>I</i> − log(<i>G</i><sub>σ</sub> ∗ <i>I</i>). MSR merata-ratakan beberapa σ.</p>
+<p><strong>Reduksi derau.</strong> <em>Median</em> mengganti piksel dengan median tetangga <i>k</i>×<i>k</i>
+(tahan derau impuls, menjaga tepi). <em>Gaussian</em> adalah rata-rata berbobot
+(menghaluskan tepi). <em>Bilateral</em> menambah bobot kemiripan intensitas sehingga tepi
+terjaga. <em>Non-local means</em> (NLM) merata-ratakan piksel yang lingkungannya mirip,
+di mana pun letaknya.</p>
+<p><strong>Unsharp mask.</strong> <i>I</i>′ = <i>I</i> + <i>a</i>·(<i>I</i> − <i>G</i><sub>σ</sub> ∗ <i>I</i>)
+menguatkan komponen frekuensi tinggi dengan kekuatan <i>a</i>.</p>
+<p><strong>Ruang warna.</strong> Perbaikan kontras dapat diterapkan pada kanal luminans (Y pada
+YCrCb, L pada Lab, V pada HSV) agar rona tidak bergeser, atau pada tiap kanal RGB.
+Karena Cr/Cb menyimpan <em>selisih</em> warna dalam satuan absolut, menaikkan Y saja
+menurunkan saturasi relatif. Alternatifnya adalah mengalikan ketiga kanal RGB
+dengan rasio <i>Y</i><sub>baru</sub>/<i>Y</i><sub>lama</sub>.</p>
+<p><strong>Metrik.</strong> PSNR = 10·log<sub>10</sub>(255²/MSE) mengukur galat piksel. SSIM
+(Wang dkk., 2004) membandingkan luminans, kontras, dan struktur lokal (jendela
+Gaussian σ = 1,5, rata-rata kanal RGB). ΔE2000 (CIEDE2000) mengukur beda warna
+perseptual di ruang CIELAB; ΔE ≈ 2 nyaris tak terlihat, ΔE &gt; 10 jelas berbeda.
+<strong>Uji Wilcoxon signed-rank</strong> menguji apakah median selisih berpasangan dua metode
+pada citra yang sama berbeda dari nol tanpa asumsi normalitas.</p>
+<h2>3. Dataset</h2>
+<p><strong>Pengambilan.</strong> Sepuluh skenario benda di atas meja kayu (s01-s10) dipotret
+sendiri dengan ponsel TECNO CN7c (f/1,8, 5,56 mm) pada penyangga tetap, 11 Oktober
+2026. Tiap skenario terdiri dari satu acuan dan lima citra gelap: total 60 citra
+JPEG 2304×4096, 50 pasangan evaluasi.</p>
+<table>
+<thead>
+<tr>
+<th>Jenis</th>
+<th>Kondisi</th>
+<th>ISO</th>
+<th>Rana</th>
+<th>Luminans rata-rata (rentang)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Acuan</td>
+<td>semua lampu menyala</td>
+<td>800</td>
+<td>1/20 s</td>
+<td>98,4 (85,6-119,0)</td>
+</tr>
+<tr>
+<td>K1</td>
+<td>Redup: sebagian lampu mati</td>
+<td>100</td>
+<td>1/30 s</td>
+<td>32,2 (22,4-45,3)</td>
+</tr>
+<tr>
+<td>K2</td>
+<td>Sangat gelap: satu lampu kecil</td>
+<td>100</td>
+<td>1/30 s</td>
+<td>22,6 (16,0-32,3)</td>
+</tr>
+<tr>
+<td>K3</td>
+<td>Berderau: cahaya redup, ISO tinggi</td>
+<td>3200</td>
+<td>1/90 s</td>
+<td>25,3 (18,1-34,7)</td>
+</tr>
+<tr>
+<td>K4</td>
+<td>Tidak merata: satu lampu dari samping</td>
+<td>100</td>
+<td>1/30 s</td>
+<td>19,9 (12,2-30,6)</td>
+</tr>
+<tr>
+<td>K5</td>
+<td>Remang: tirai tertutup, tanpa lampu</td>
+<td>100</td>
+<td>1/30 s</td>
+<td>24,5 (13,7-36,5)</td>
+</tr>
+</tbody>
+</table>
+<p>Angka ISO/rana dibaca dari EXIF (<code>data/metadata.csv</code>). K4 ternyata kondisi paling
+gelap, dan K5 tidak lebih gelap dari K2.</p>
+<p><strong>Ground truth.</strong> Acuan adalah foto adegan yang sama dengan pencahayaan ruangan
+penuh, tanpa penyuntingan. Acuan sendiri tidak sempurna: ISO 800 masih menyisakan
+derau halus dan ada pantulan lampu di meja.</p>
+<p><strong>Validasi pasangan.</strong> <code>audit_dataset.py</code> mencocokkan magnitudo gradien
+(tidak peka terhadap kecerahan) antara acuan dan citra gelap. Pergeseran global
+median 0,22 px (maks. 1,30 px pada skala 1/4), rotasi maks. 0,2°. Dua pasangan
+K3 melewati ambang 1 px, tetapi mengompensasi pergeserannya tidak mengubah SSIM
+(≤ 0,006): itu efek derau pada estimasi. Ke-50 pasangan dipakai.</p>
+<p><strong>Perbedaan adegan.</strong> Kamera tidak bergeser, tetapi cahaya mengubah isi citra:
+bayangan keras di K4, bayangan tirai di K5, dan posisi pantulan meja yang berbeda
+(Gambar 1). Galat ini tidak bisa dihapus metode apa pun yang tidak melihat acuan.</p>
+<figure><img src="../../results/figures/scene_differences.png" style="width:78%">
+<figcaption>Gambar 1. s01 dengan kecerahan disamakan ke acuan: bayangan K4 dan K5 tidak ada di acuan.</figcaption></figure>
+
+<p><strong>Pembagian data.</strong> Per skenario dengan seed 42 (<code>data/split.json</code>): dev s01, s03,
+s04, s06, s07, s08 (30 citra) dan uji s02, s05, s09, s10 (20 citra). Pembagian per
+skenario mencegah lima citra dari adegan yang sama bocor antara dev dan uji.
+Runner eksperimen menolak memuat skenario uji, dan perilaku ini diuji oleh unit test.
+<strong>Privasi:</strong> tidak ada wajah, plat nomor, atau informasi pribadi.</p>
+<h2>4. Rancangan pipeline</h2>
+<div class="pipe">
+<div><b>1. Pra-pemrosesan</b><br>perkecil 1/4 (INTER_AREA)<br>RGB → YCrCb</div>
+<div><b>2. Reduksi derau</b><br>diuji: median, Gaussian, bilateral, NLM<br><i>final: tidak dipakai</i></div>
+<div><b>3. Kontras (kanal Y)</b><br>gamma adaptif (target 0,38)<br>→ CLAHE (clip 1,0, tile 16)</div>
+<div><b>4. Pasca-proses</b><br>gabung Y + CrCb → RGB<br>saturasi ×1,5<br><i>unsharp diuji, tidak dipakai</i></div>
+</div>
+
+<p>Seluruh tahap dapat diatur lewat JSON (<code>src/pipeline.py</code>, <code>configs/final.json</code>),
+termasuk urutan tahap 2-3 dan ruang warna, sehingga setiap eksperimen hanya
+mengganti konfigurasi. Alasan tiap pilihan:</p>
+<ol>
+<li><strong>Skala 1/4 dan YCrCb.</strong> Citra 9,4 MP membuat NLM dan median dari nol butuh
+   beberapa detik per citra; acuan diperkecil dengan cara yang sama. Kontras
+   diperbaiki pada Y agar rona tidak bergeser (T31).</li>
+<li><strong>Tanpa filter derau.</strong> Memperkecil 4×4 dengan <code>INTER_AREA</code> merata-ratakan 16
+   piksel, sehingga derau sudah turun ±4×; filter tambahan hanya mengaburkan
+   tekstur (Bagian 6.2).</li>
+<li><strong>Gamma adaptif + CLAHE ringan.</strong> Gamma adaptif menyamakan kecerahan global per
+   citra; CLAHE dengan clip minimum menambah kontras lokal tanpa halo.</li>
+<li><strong>Saturasi.</strong> Menaikkan Y tanpa menyentuh Cr/Cb membuat warna memudar
+   (Gambar 2), jadi saturasi dikembalikan di akhir.</li>
+</ol>
+<figure><img src="../../results/figures/desaturation.png" style="width:72%">
+<figcaption>Gambar 2. Gamma pada Y memudarkan warna; gamma via rasio luminans menjaga warna tetapi kelewat jenuh.</figcaption></figure>
+
+<h2>5. Implementasi dari nol dan verifikasi</h2>
+<p><code>src/from_scratch.py</code> hanya memakai NumPy.</p>
+<ul>
+<li><strong>Ekualisasi histogram.</strong> Histogram dengan <code>np.bincount</code>, CDF dengan <code>np.cumsum</code>,
+  LUT <code>round((cdf − cdf_min)·255/(N − cdf_min))</code>. Tiga detail disamakan dengan
+  OpenCV: (1) citra konstan dikembalikan apa adanya, (2) faktor skala dihitung dalam
+  float32, (3) pembulatan round-half-to-even (<code>np.rint</code>, setara <code>cvRound</code>).</li>
+<li><strong>Filter median.</strong> Padding replikasi tepi (<code>np.pad(mode="edge")</code>, setara
+  <code>BORDER_REPLICATE</code> OpenCV), jendela dengan <code>sliding_window_view</code>, elemen tengah
+  dengan <code>np.partition</code>. Diproses per potongan baris agar memori sementara
+  ≤ 64 MB. Karena k×k selalu ganjil, median adalah nilai tengah persis.</li>
+</ul>
+<p><strong>Verifikasi</strong> (<code>experiments/verify_from_scratch.py</code>) pada 10 citra gelap (2 per
+kondisi): selisih piksel maksimum dan rata-rata = <strong>0</strong> untuk kedua operasi, pada
+skala kerja maupun resolusi penuh. 57 unit test (citra konstan, 1×N, ukuran
+ganjil/genap, k = 3/5/7/9, RGB, input tidak valid) juga lulus dengan selisih 0.</p>
+<table>
+<thead>
+<tr>
+<th>Operasi (10 citra)</th>
+<th>Resolusi</th>
+<th>Versi sendiri</th>
+<th>OpenCV</th>
+<th>Rasio</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ekualisasi histogram</td>
+<td>576×1024</td>
+<td>3,8 ms</td>
+<td>0,6 ms</td>
+<td>6×</td>
+</tr>
+<tr>
+<td>Median 3×3 (RGB)</td>
+<td>576×1024</td>
+<td>156 ms</td>
+<td>0,8 ms</td>
+<td>207×</td>
+</tr>
+<tr>
+<td>Median 5×5 (RGB)</td>
+<td>576×1024</td>
+<td>428 ms</td>
+<td>4,1 ms</td>
+<td>114×</td>
+</tr>
+<tr>
+<td>Ekualisasi histogram</td>
+<td>2304×4096</td>
+<td>59 ms</td>
+<td>3,6 ms</td>
+<td>17×</td>
+</tr>
+<tr>
+<td>Median 3×3 (RGB)</td>
+<td>2304×4096</td>
+<td>1,80 s</td>
+<td>9,9 ms</td>
+<td>185×</td>
+</tr>
+<tr>
+<td>Median 5×5 (RGB)</td>
+<td>2304×4096</td>
+<td>5,58 s</td>
+<td>37,7 ms</td>
+<td>148×</td>
+</tr>
+</tbody>
+</table>
+<p>Versi sendiri lebih lambat karena NumPy membuat salinan k² nilai per piksel lalu
+mempartisinya, sedangkan OpenCV memakai algoritma median berbasis histogram
+bergeser dan instruksi SIMD dalam C++. Kedua operasi dipakai di pipeline:
+ekualisasi histogram sebagai metode pembanding (T29), dan median dari nol pada T30
+memberi hasil identik dengan <code>cv2.medianBlur</code> di seluruh 30 citra dev.</p>
+<h2>6. Eksperimen (hanya dev)</h2>
+<p>Setiap tahap divariasikan dengan tahap lain dikunci. Metrik dihitung pada skala 1/4
+untuk 30 citra dev; semua perbandingan berpasangan diuji dengan Wilcoxon
+(<code>results/wilcoxon_dev.csv</code>).</p>
+<h3>6.1 Perbaikan kontras</h3>
+<figure><img src="../../results/figures/fig_contrast.png" style="width:92%">
+<figcaption>Gambar 3. Metode kontras dengan parameter bawaan, tanpa reduksi derau.</figcaption></figure>
+
+<p>Luminans rata-rata keluaran menjelaskan peringkatnya (acuan: rata-rata 96, simpangan
+baku 36,5). HE memaksa histogram seragam sehingga terlalu terang dan terlalu kontras
+(131; 72,6). SSR/MSR merentangkan reflektansi ke 0-255 sehingga jauh terlalu terang
+(±173). CLAHE tunggal hanya menaikkan kontras lokal dan tetap terlalu gelap (43).
+Gamma adaptif tepat mengenai kecerahan (97) tetapi kontrasnya kurang (24,8), dan
+celah inilah yang coba diisi CLAHE ringan pada tuning (Bagian 6.4). Gamma adaptif mengalahkan
+gamma 0,5 pada PSNR dan ΔE (24/30 citra, p &lt; 0,001) karena kecerahan citra gelap
+bervariasi antarskenario (22-45 pada K1). Pada parameter bawaan, menambahkan
+CLAHE (clip 1,5) tidak menaikkan SSIM (p = 0,81) dan menurunkan PSNR (p &lt; 0,001).</p>
+<h3>6.2 Reduksi derau dan pengaruh resolusi</h3>
+<p>Pada skala 1/4, <strong>semua</strong> filter menurunkan SSIM, termasuk pada K3 (ISO 3200):
+tanpa filter 0,723, median 3×3 0,690, bilateral 0,680, NLM h=3 0,680 (tanpa filter
+lebih baik di 27/30 citra, p &lt; 0,001). Dugaan penyebabnya, memperkecil dengan
+<code>INTER_AREA</code> sudah meredam derau, diuji dengan mengulang eksperimen pada skala
+1/2 dan penuh (Gambar 4). Pada resolusi penuh urutannya terbalik: median dan
+bilateral unggul, dan pada K3 bilateral menaikkan SSIM dari 0,645 ke 0,701.
+Kesimpulannya, kebutuhan reduksi derau bergantung pada resolusi kerja.</p>
+<figure><img src="../../results/figures/denoise_vs_scale.png" style="width:80%">
+<figcaption>Gambar 4. SSIM dev per metode reduksi derau pada tiga resolusi.</figcaption></figure>
+
+<h3>6.3 Urutan, ruang warna, dan warna</h3>
+<ul>
+<li><strong>Ruang warna:</strong> YCrCb (SSIM 0,723) &gt; Lab 0,718 ≈ RGB per kanal 0,718 &gt; rasio
+  luminans 0,703 &gt; HSV 0,700. Per kanal RGB menggeser rona (ΔE +0,77, p &lt; 0,001).</li>
+<li><strong>Urutan:</strong> untuk NLM, denoise sebelum kontras lebih baik (SSIM p &lt; 0,001)
+  karena derau belum diperkuat gamma. Untuk median 3×3 selisihnya &lt; 0,001.</li>
+<li><strong>White balance gray-world</strong> memperburuk 30/30 citra: citra gelap sudah sama
+  hangatnya dengan acuan (rasio R/G 1,18-1,26 vs 1,10-1,13).</li>
+<li><strong>Saturasi:</strong> penguatan ×1,2-1,4 memperbaiki ΔE (p &lt; 0,001) tanpa mengubah SSIM.</li>
+</ul>
+<h3>6.4 Tuning parameter</h3>
+<p>Tuning bertahap dengan kriteria peringkat gabungan PSNR/SSIM/ΔE (lihat
+<code>docs/parameter_rationale.md</code>). Target gamma adaptif 0,38 (SSIM tertinggi
+dibanding 0,40, p = 0,007). CLAHE terbaik pada clip 1,0 dan tile 16 (Gambar 5);
+clip lebih besar selalu menurunkan SSIM. Ukuran kernel 3/5/7 untuk median dan
+Gaussian semuanya kalah dari tanpa filter. Unsharp dengan amount &gt; 0 menurunkan
+SSIM (29/30 citra, p &lt; 0,001). Saturasi optimum 1,5 dari grid 1,0-2,5.</p>
+<figure><img src="../../results/figures/heatmap_clahe.png" style="width:82%">
+<figcaption>Gambar 5. Grid CLAHE setelah gamma adaptif (dev). Bingkai = pilihan.</figcaption></figure>
+
+<h2>7. Hasil dan pembahasan</h2>
+<h3>7.1 Evaluasi akhir (citra uji, n = 20)</h3>
+<p>Konfigurasi dikunci (git tag <code>config-locked</code>) sebelum citra uji dievaluasi.</p>
+<table>
+<thead>
+<tr>
+<th>Metode</th>
+<th>PSNR (dB) ↑</th>
+<th>SSIM ↑</th>
+<th>ΔE2000 ↓</th>
+<th>Waktu (ms)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Citra mentah (baseline)</td>
+<td>9,68 ± 1,20</td>
+<td>0,322 ± 0,067</td>
+<td>27,73 ± 4,54</td>
+<td>-</td>
+</tr>
+<tr>
+<td>Ekualisasi histogram (dari nol)</td>
+<td>11,12 ± 1,50</td>
+<td>0,561 ± 0,092</td>
+<td>20,84 ± 3,04</td>
+<td>11</td>
+</tr>
+<tr>
+<td>CLAHE</td>
+<td>11,17 ± 1,20</td>
+<td>0,504 ± 0,054</td>
+<td>23,68 ± 3,89</td>
+<td>5</td>
+</tr>
+<tr>
+<td>MSR</td>
+<td>11,50 ± 1,71</td>
+<td>0,632 ± 0,095</td>
+<td>22,76 ± 5,59</td>
+<td>601</td>
+</tr>
+<tr>
+<td>Gamma 0,5</td>
+<td>15,51 ± 1,53</td>
+<td>0,720 ± 0,038</td>
+<td>15,71 ± 2,87</td>
+<td>7</td>
+</tr>
+<tr>
+<td>Gamma adaptif 0,4</td>
+<td>17,16 ± 1,50</td>
+<td>0,739 ± 0,041</td>
+<td>13,21 ± 2,02</td>
+<td>9</td>
+</tr>
+<tr>
+<td><strong>Pipeline final</strong></td>
+<td><strong>17,21 ± 1,90</strong></td>
+<td><strong>0,749 ± 0,049</strong></td>
+<td><strong>12,84 ± 2,45</strong></td>
+<td>14</td>
+</tr>
+</tbody>
+</table>
+<p>Pipeline final lebih baik dari baseline pada <strong>20 dari 20</strong> citra untuk ketiga metrik
+(Wilcoxon p &lt; 0,001; median kenaikan PSNR +7,2 dB, SSIM +0,41, ΔE −14,2).
+Dibanding gamma adaptif standar, SSIM (+0,012, p = 0,002) dan ΔE (−0,51, p = 0,012)
+lebih baik, sedangkan PSNR setara (p = 0,57). Pipeline butuh 14 ms per citra pada
+skala kerja dan 177 ms pada resolusi penuh.</p>
+<figure><img src="../../results/figures/final_per_condition.png" style="width:92%">
+<figcaption>Gambar 6. Baseline vs pipeline final per kondisi (citra uji).</figcaption></figure>
+
+<table>
+<thead>
+<tr>
+<th>Kondisi</th>
+<th>PSNR mentah → final</th>
+<th>SSIM mentah → final</th>
+<th>ΔE mentah → final</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>K1 Redup</td>
+<td>10,22 → 16,18</td>
+<td>0,428 → 0,753</td>
+<td>25,64 → 13,89</td>
+</tr>
+<tr>
+<td>K2 Sangat gelap</td>
+<td>9,57 → 17,50</td>
+<td>0,309 → 0,780</td>
+<td>28,28 → 12,46</td>
+</tr>
+<tr>
+<td>K3 Berderau</td>
+<td>9,53 → 16,89</td>
+<td>0,301 → <strong>0,676</strong></td>
+<td>27,94 → 12,64</td>
+</tr>
+<tr>
+<td>K4 Tidak merata</td>
+<td>9,39 → 18,90</td>
+<td>0,235 → 0,785</td>
+<td>29,06 → 11,76</td>
+</tr>
+<tr>
+<td>K5 Remang</td>
+<td>9,67 → 16,56</td>
+<td>0,338 → 0,751</td>
+<td>27,71 → 13,42</td>
+</tr>
+</tbody>
+</table>
+<p>K4 justru mendapat skor terbaik walau paling gelap; dugaan kami, lampu samping
+memberi kontras lokal yang kuat sehingga struktur tetap terekam. K3 tertinggal paling jauh pada SSIM.</p>
+<figure><img src="../../results/figures/examples_test.png" style="width:82%">
+<figcaption>Gambar 7. Skenario uji s02: gelap, hasil, dan acuan untuk K1-K5.</figcaption></figure>
+
+<h3>7.2 Analisis kegagalan</h3>
+<p>Empat citra uji dengan SSIM terendah dipilih otomatis
+(<code>experiments/failure_cases.py</code>): s02_k3 (0,636), s09_k3 (0,661), s05_k3 (0,684),
+dan s09_k1 (0,709). Keluaran tiap tahap disimpan dan diukur
+(<code>results/failures/stage_metrics.csv</code>).</p>
+<figure><img src="../../results/failures/s02_k3.png" style="width:92%">
+<figcaption>Gambar 8. Kasus terburuk s02_k3: hasil tampak halus/kabur dibanding acuan; galat terbesar di pantulan meja.</figcaption></figure>
+
+<table>
+<thead>
+<tr>
+<th>Kasus</th>
+<th>Tahap penyebab</th>
+<th>Bukti</th>
+<th>Usulan</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>s02_k3, s05_k3, s09_k3 (K3)</td>
+<td><strong>Pengambilan</strong> (bukan pipeline): ISO 3200 + 1/90 s dan pengurangan derau internal ponsel menghapus tekstur kayu</td>
+<td>Energi frekuensi tinggi keluaran hanya 0,51 (s02), 0,49 (s05), 0,82 (s09) × acuan; SSIM pita tengah 0,57-0,67; tahap kontras menaikkan SSIM 0,29 → 0,63 tetapi tidak bisa mengembalikan detail yang tidak terekam</td>
+<td>Uji A: pemertajaman khusus ISO tinggi. Ambil K3 dengan rana lebih lama atau gabungkan beberapa bidikan (multi-frame averaging)</td>
+</tr>
+<tr>
+<td>s09_k1, juga semua citra s09/s10</td>
+<td><strong>Tahap 3 (gamma adaptif)</strong>: target kecerahan tetap 0,38 → luminans ±97, sedangkan acuan s09/s10 lebih terang (114-119)</td>
+<td>Selisih luminans −18 s.d. −29 pada seluruh 10 citra s09/s10; menyamakan kecerahan menaikkan SSIM luminans hanya +0,01-0,04 tetapi ΔE turun hingga 5 (s09_k4: 14,8 → 9,8)</td>
+<td>Target kecerahan tidak bisa diketahui tanpa acuan; perkirakan dari isi adegan atau biarkan pengguna mengatur. Laporkan sebagai batas metode global</td>
+</tr>
+<tr>
+<td>s09_k1 (K1)</td>
+<td><strong>Tahap 3 + adegan</strong>: gradien cahaya berbeda dari acuan; derau gelap ikut diperkuat (frek. tinggi 1,32 × acuan)</td>
+<td>SSIM pita bawah 0,63; porsi piksel dengan iluminasi relatif &lt; 0,6× median paling tinggi di K1 (24%, dev)</td>
+<td>Uji C: koreksi iluminasi lokal parsial</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Hipotesis awal PRD.</strong> K5 <em>tidak</em> hampir hitam (luminans 24,5, SSIM akhir 0,751).
+Derau berwarna K3 bukan masalah utama setelah diperkecil; masalahnya tekstur yang
+hilang. Halo CLAHE dihindari karena clip 1,0 terpilih; clip ≥ 2 memang menurunkan
+SSIM. Saturasi piksel pada K4 kecil: ≤ 0,8% piksel keluaran bernilai ≥ 254 (acuan s09 sendiri 0,46%).</p>
+<p><strong>Menguji usulan perbaikan</strong> (<code>experiments/fix_eval.py</code>, disetel di dev, diuji sekali
+di uji, terpisah dari hasil utama):</p>
+<ul>
+<li><strong>A. Pemertajaman untuk ISO ≥ 1600.</strong> Ditolak di dev: setiap amount (0,25-2,0)
+  menurunkan SSIM K3 (0,677 → 0,531) karena yang diperkuat adalah sisa derau,
+  bukan tekstur. Hipotesis "kurang tajam" salah; informasi memang hilang saat pengambilan.</li>
+<li><strong>B. Mask bayangan untuk evaluasi K4/K5.</strong> Ditolak: dengan mask berbasis rasio
+  iluminasi, K1 (tanpa bayangan) justru memiliki porsi "bayangan" terbesar. Perbedaan
+  iluminasi bersifat menyeluruh, bukan bayangan lokal saja.</li>
+<li><strong>C. Koreksi iluminasi parsial</strong> <i>I</i>·(mean <i>L</i> / <i>L</i>)<sup>0,3</sup>,
+  σ = 120, sebelum gamma. Di uji: ΔE 12,84 → 12,68 (p = 0,03), PSNR +0,03 dB
+  (p = 0,19), SSIM −0,002 (p = 0,15). Paling membantu K1 (PSNR +0,39 dB, ΔE −0,61)
+  dan merugikan K4 sedikit. Perbaikan nyata tetapi kecil; konfigurasi final tidak diubah.</li>
+</ul>
+<h2>8. Kesimpulan dan saran</h2>
+<ol>
+<li>Pipeline klasik 4 tahap (YCrCb → gamma adaptif → CLAHE ringan → saturasi)
+   menaikkan PSNR 9,7 → 17,2 dB, SSIM 0,32 → 0,75, dan menurunkan ΔE 27,7 → 12,8
+   pada citra uji, lebih baik dari baseline di seluruh 20 citra dan kelima kondisi.</li>
+<li>Metode yang meratakan histogram (HE, CLAHE kuat, Retinex) kalah jauh dari
+   gamma karena acuan bukan citra berhistogram seragam. Pilihan metode harus
+   mengikuti bentuk target, bukan sekadar "kontras setinggi mungkin".</li>
+<li>Ekualisasi histogram dan filter median dari nol identik dengan OpenCV
+   (selisih 0 pada 10 citra dan 57 kasus uji), tetapi 6-207× lebih lambat.</li>
+<li>Reduksi derau tidak membantu pada skala 1/4 tetapi membantu pada resolusi penuh.
+   Keputusan rancangan bergantung pada resolusi kerja dan harus diuji ulang bila
+   resolusinya berubah.</li>
+<li>Kegagalan terbesar (K3) berasal dari informasi yang hilang saat pengambilan;
+   batas kedua adalah kecerahan target dan gradien cahaya yang tidak dapat diketahui
+   tanpa acuan.</li>
+</ol>
+<p><strong>Keterbatasan.</strong> Dev hanya 6 skenario dan uji 4 skenario dengan latar meja yang
+sama, sehingga p-value bersifat indikatif dan generalisasi ke adegan lain belum
+teruji. Acuan diambil pada ISO 800, bukan ISO dasar. Evaluasi utama pada skala 1/4.</p>
+<p><strong>Saran.</strong> (1) Pilih reduksi derau berdasarkan ISO EXIF bila memproses resolusi
+penuh (median 3×3 atau bilateral untuk ISO tinggi). (2) Gabungkan koreksi
+iluminasi parsial (perbaikan C) untuk kondisi redup. (3) Ambil acuan pada ISO 100
+dengan tripod dan tambahkan adegan dengan latar berbeda.</p><div class='appendix'><h2>Lampiran A. Pembagian kontribusi</h2>
+<table>
+<thead>
+<tr>
+<th>Peran</th>
+<th>Nama</th>
+<th>Kontribusi utama</th>
+<th>Commit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ketua dan integrator</td>
+<td>[isi]</td>
+<td>Rancangan pipeline, integrasi modul, repository, jadwal</td>
+<td>[isi tautan]</td>
+</tr>
+<tr>
+<td>Penanggung jawab data</td>
+<td>[isi]</td>
+<td>Pemotretan 60 citra, dokumentasi kondisi, audit pasangan</td>
+<td>[isi tautan]</td>
+</tr>
+<tr>
+<td>Pengembang algoritma</td>
+<td>[isi]</td>
+<td>Ekualisasi histogram dan filter median dari nol, verifikasi</td>
+<td>[isi tautan]</td>
+</tr>
+<tr>
+<td>Penguji dan penulis</td>
+<td>[isi]</td>
+<td>Skrip evaluasi, eksperimen, analisis kegagalan, laporan</td>
+<td>[isi tautan]</td>
+</tr>
+</tbody>
+</table>
+<h2>Lampiran B. Pernyataan penggunaan alat bantu AI</h2>
+<p>Dosen pengampu mengizinkan penggunaan alat bantu AI tanpa batasan untuk project ini.
+Penggunaannya kami catat sebagai berikut.</p>
+<table>
+<thead>
+<tr>
+<th>Alat</th>
+<th>Tujuan</th>
+<th>Bagian yang terbantu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Claude (Anthropic), lewat Claude Code</td>
+<td>Menulis kode dan menjalankan eksperimen</td>
+<td><code>src/</code> (termasuk <code>from_scratch.py</code>), <code>experiments/</code>, <code>audit_dataset.py</code>, <code>run_all.py</code>, <code>tests/</code></td>
+</tr>
+<tr>
+<td>Claude (Anthropic), lewat Claude Code</td>
+<td>Analisis dan penulisan</td>
+<td>Pemecahan PRD menjadi tugas, draf laporan ini, README, <code>docs/parameter_rationale.md</code>, <code>docs/dataset_notes.md</code></td>
+</tr>
+</tbody>
+</table>
+<p>Yang dikerjakan kelompok sendiri: pemotretan seluruh 60 citra dan dokumentasi
+kondisinya, [isi: peninjauan kode, pengecekan angka, penyuntingan laporan, presentasi].</p>
+<p>Seluruh angka di laporan dihasilkan oleh skrip di repository dan dapat diulang
+dengan <code>python run_all.py</code> (evaluasi akhir) dan <code>python run_all.py --experiments</code>
+(seluruh eksperimen dev). Tidak ada angka atau ground truth yang dikarang atau
+disunting manual. [Konfirmasi sebelum dikumpulkan: setiap anggota telah
+mempelajari kode dan mampu menjelaskan seluruh tahap pipeline, termasuk kedua
+operasi dari nol.]</p>
+<h2>Lampiran C. Cara mereproduksi</h2>
+<pre><code>pip install -r requirements.txt
+python -m pytest                 # 65 unit test
+python run_all.py                # audit, verifikasi, evaluasi uji, analisis kegagalan
+python run_all.py --experiments  # + seluruh eksperimen dan tuning dev
+python -m experiments.fix_eval   # perbaikan tambahan (Bagian 7.2)
+python -m experiments.figures    # gambar laporan
+</code></pre></div></body></html>

@@ -89,9 +89,10 @@ def final_per_condition():
         ax.set_xticks(x, conds)
         ax.grid(axis="x", visible=False)
         ax.set_title(label, fontsize=10)
-    axes[0].legend(loc="upper left", fontsize=8)
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="lower center", ncol=2, bbox_to_anchor=(0.5, 0.0))
     fig.suptitle("Citra uji (n=20, 4 per kondisi): rata-rata ± simpangan baku", fontsize=10)
-    fig.tight_layout()
+    fig.tight_layout(rect=(0, 0.07, 1, 1))
     fig.savefig(F / "final_per_condition.png", dpi=150)
     plt.close(fig)
 

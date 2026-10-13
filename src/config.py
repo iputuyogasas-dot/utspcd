@@ -1,11 +1,13 @@
 """Konfigurasi terpusat: path, seed, peta kondisi, dan skala kerja."""
 
+import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 
 # Dataset lengkap (60 JPEG, ±150 MB) tidak ikut di-commit; lihat README.
-DATA_DIR = ROOT / "DATASET NEW"
+# Lokasi lain bisa diatur lewat variabel lingkungan PCD_DATA_DIR.
+DATA_DIR = Path(os.environ.get("PCD_DATA_DIR", ROOT / "DATASET NEW"))
 SPLIT_PATH = ROOT / "data" / "split.json"
 METADATA_PATH = ROOT / "data" / "metadata.csv"
 RESULTS_DIR = ROOT / "results"

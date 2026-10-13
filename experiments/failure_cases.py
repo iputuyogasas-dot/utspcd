@@ -74,9 +74,15 @@ def diagnose(out, ref):
 
 def panel(name, dark, stages, out, ref, metrics):
     plotstyle.apply()
+    names = {"denoise": "reduksi derau", "contrast": "gamma + CLAHE"}
     keys = [k for k in stages if k != "4_postprocess"]
-    tiles = [("Gelap (input)", dark)] + [(k.split("_", 1)[1], stages[k]) for k in keys[1:]] + \
-            [("Hasil", out), ("Acuan", ref)]
+    tiles = [("Gelap (input)", dark)]
+    for prev, k in zip(keys, keys[1:]):
+        label = names.get(k.split("_", 1)[1], k)
+        if np.array_equal(stages[k], stages[prev]):
+            label += " (nonaktif)"
+        tiles.append((label, stages[k]))
+    tiles += [("Hasil (+saturasi)", out), ("Acuan", ref)]
     err = np.abs(luminance(out) - luminance(ref))
     n = len(tiles) + 1
     fig, axes = plt.subplots(1, n, figsize=(2.1 * n, 4.4))

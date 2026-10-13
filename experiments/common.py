@@ -24,11 +24,13 @@ class TestDataAccessError(RuntimeError):
     pass
 
 
-def guarded_pairs(subset="dev", allow_test=False):
-    """Pasangan untuk subset; tolak skenario uji bila allow_test=False."""
+def guarded_pairs(subset="dev", allow_test=False, conditions=None):
+    """Pasangan untuk subset (opsional: hanya kondisi tertentu); tolak skenario uji bila allow_test=False."""
     if subset != "dev" and not allow_test:
         raise TestDataAccessError(f"subset '{subset}' butuh allow_test=True (hanya untuk evaluasi akhir)")
     pairs = pairs_for(subset)
+    if conditions:
+        pairs = [p for p in pairs if p.condition in set(conditions)]
     if not allow_test:
         test = set(load_split()["test"])
         leaked = sorted({p.scenario for p in pairs} & test)
@@ -56,13 +58,13 @@ def _eval_pair(job):
 
 
 def run_configs(configs, subset="dev", allow_test=False, scale=config.WORK_SCALE,
-                workers=None, out_csv=None, extra_metrics=False, verbose=True):
+                workers=None, out_csv=None, extra_metrics=False, verbose=True, conditions=None):
     """configs: dict nama -> config pipeline (None = baseline citra mentah).
 
     Jumlah pekerja dibatasi (default 6) karena tiap proses memuat OpenCV,
     scikit-image, dan SciPy (±300 MB).
     """
-    pairs = guarded_pairs(subset, allow_test)
+    pairs = guarded_pairs(subset, allow_test, conditions)
     items = [(name, cfg or {}) for name, cfg in configs.items()]
     jobs = [(items, p, scale, extra_metrics) for p in pairs]
     workers = workers or int(os.environ.get("PCD_WORKERS", min(6, os.cpu_count() or 2)))

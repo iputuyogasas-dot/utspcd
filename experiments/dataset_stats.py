@@ -19,7 +19,7 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 
-from src import config
+from src import config, plotstyle
 from src.dataset import scan, load_image, save_rgb
 from src.enhance import gamma
 from src.metrics import luminance, no_reference
@@ -100,6 +100,7 @@ def contact_sheets():
 
 def histograms():
     groups = scan()
+    plotstyle.apply()
     fig, ax = plt.subplots(figsize=(7, 3.6))
     for kind in ["acuan", "k1", "k2", "k3", "k4", "k5"]:
         h = np.zeros(256)
@@ -108,7 +109,7 @@ def histograms():
             h += np.bincount(y.ravel(), minlength=256)
         label = "Acuan" if kind == "acuan" else f"{kind.upper()} ({config.CONDITIONS[kind.upper()]})"
         ax.plot(h / h.sum(), label=label, lw=2.2 if kind == "acuan" else 1.4,
-                color="black" if kind == "acuan" else None)
+                color=plotstyle.INK if kind == "acuan" else plotstyle.CONDITION_COLORS[kind.upper()])
     ax.set_xlim(0, 255)
     ax.set_yscale("log")
     ax.set_xlabel("Luminans (0-255)")
