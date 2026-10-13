@@ -32,9 +32,9 @@
       "K4": "12.2-30.6 (rata-rata paling gelap)",
       "K5": "13.7-36.5 (tidak lebih gelap dari K2, berlawanan dengan dugaan PRD 9.4)"
     },
-    "alignment": "Phase correlation pada resolusi 256 px: pergeseran global < 1 px di seluruh 50 pasangan. Contact sheet menunjukkan posisi objek sama di acuan dan K1-K5, termasuk s08-s10. Risiko 'objek bergeser' di PRD 5.3 kemungkinan tidak berlaku untuk DATASET NEW, tapi wajib dikonfirmasi pada resolusi penuh.",
+    "alignment": "Phase correlation pada resolusi 256 px: pergeseran global < 1 px di seluruh 50 pasangan. Contact sheet menunjukkan posisi objek sama di acuan dan K1-K5, termasuk s08-s10. Risiko 'objek bergeser' di PRD 5.3 kemungkinan tidak berlaku untuk DATASET NEW, tapi wajib dikonfirmasi pada resolusi penuh. Dikonfirmasi oleh audit_dataset.py (T07): 48/50 lolos, 2 sisanya efek derau K3.",
     "scene_differences": [
-      "Warna acuan jauh lebih hangat (kayu oranye) daripada citra gelap yang cenderung netral/keabu-abuan. White balance berbeda sehingga ΔE akan tinggi walau kecerahan sudah benar.",
+      "KOREKSI: warna citra gelap sama hangatnya dengan acuan (rasio R/G 1.18-1.26 vs 1.10-1.13). Kesan 'netral/keabu-abuan' berasal dari visualisasi yang menaikkan Y di YCrCb tanpa menskalakan Cr/Cb.",
       "K4 memiliki bayangan keras dari lampu samping yang tidak ada di acuan.",
       "K5 memiliki bayangan tirai besar di bagian bawah bingkai yang tidak ada di acuan.",
       "Pola pantulan cahaya di meja berbeda antar kondisi, sehingga korelasi piksel rendah walau kamera tidak bergeser."
@@ -110,7 +110,8 @@
         "Tidak ada lagi placeholder [isi ...] atau [tanggal] di PRD",
         "Setiap anggota punya satu peran utama"
       ],
-      "status": "todo"
+      "status": "blocked",
+      "notes": "PRD v1.1 sudah dikoreksi (EXIF, risiko, kebijakan AI). Nama kelompok, anggota per peran, tenggat, dan tanggal tahap masih [isi]: butuh data dari kelompok."
     },
     {
       "id": "T02",
@@ -136,7 +137,8 @@
         "Struktur folder ada dan ter-commit",
         "Keputusan penyimpanan dataset tercatat di README"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "git init; struktur src/ experiments/ results/ configs/ data/ tests/. Dataset lengkap di .gitignore (tautan unduh di README), contoh kecil di data/samples/."
     },
     {
       "id": "T03",
@@ -159,7 +161,8 @@
         "pip install -r requirements.txt berhasil di venv bersih",
         "Tidak ada pustaka deep learning"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "requirements.txt dengan versi terkunci; diuji di venv bersih (lihat T42)."
     },
     {
       "id": "T04",
@@ -183,7 +186,8 @@
         "Semua skrip lain membaca path dan seed dari config.py",
         "Nilai WORK_SCALE dan alasannya tertulis di komentar dan laporan"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "src/config.py: WORK_SCALE 0.25 (576x1024) dengan alasan di komentar; PCD_DATA_DIR untuk lokasi dataset lain."
     },
     {
       "id": "T05",
@@ -206,7 +210,8 @@
         "list_pairs() mengembalikan tepat 50 pasangan",
         "Error yang jelas bila file hilang atau ukuran berbeda"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "src/dataset.py: 50 pasangan tervalidasi; cache PNG skala kerja di data/cache/ (ditulis atomik)."
     },
     {
       "id": "T06",
@@ -231,7 +236,8 @@
         "Pengaturan kamera acuan terdokumentasi",
         "Selisih K3 1/90 vs 1/100 dikoreksi"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "data/metadata.csv: kamera TECNO CN7c; acuan ISO 800 1/20 s; K3 ISO 3200 1/90 s. PRD 5.2 dikoreksi."
     },
     {
       "id": "T07",
@@ -256,7 +262,8 @@
         "Setiap dari 50 pasangan punya nilai shift dan status lolos/gagal dengan ambang yang ditulis",
         "Pasangan gagal diputuskan: foto ulang, mask, atau dikeluarkan (dicatat)"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "results/audit.csv: 48/50 lolos; s01_k3 (1.03 px) dan s09_k3 (1.30 px) ditandai, kompensasi pergeseran tidak mengubah SSIM (<= 0.006) -> efek derau. Semua 50 pasangan dipakai."
     },
     {
       "id": "T08",
@@ -281,7 +288,8 @@
         "Keempat perbedaan didokumentasikan dengan gambar",
         "Keputusan tentang mask tertulis beserta alasannya"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "docs/dataset_notes.md. Koreksi atas dugaan awal: warna citra gelap sama hangatnya dengan acuan; kesan 'netral' berasal dari menaikkan Y di YCrCb (results/figures/desaturation.png). Mask bayangan diuji di T39 dan ditolak."
     },
     {
       "id": "T09",
@@ -303,7 +311,8 @@
       "acceptance_criteria": [
         "Pernyataan privasi tertulis; area sensitif (jika ada) disamarkan di gambar laporan"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "Tidak ada wajah, plat nomor, atau informasi pribadi."
     },
     {
       "id": "T10",
@@ -329,7 +338,8 @@
         "Tidak ada skenario yang muncul di kedua bagian",
         "split.json ter-commit dan ditandai final"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "data/split.json: dev s01 s03 s04 s06 s07 s08; uji s02 s05 s09 s10."
     },
     {
       "id": "T11",
@@ -353,7 +363,8 @@
       "acceptance_criteria": [
         "Gambar dan tabel siap dipakai di bagian Dataset laporan"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "results/dataset_stats.csv, contact_sheet(_boost).png, hist_per_condition.png, scene_differences.png."
     },
     {
       "id": "T12",
@@ -377,7 +388,8 @@
         "Ketiga metrik menerima uint8 RGB dan mask boolean opsional",
         "Ruang warna dan data_range terdokumentasi di docstring"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "SSIM pada RGB, jendela Gaussian sigma 1.5; ΔE CIEDE2000; mask opsional."
     },
     {
       "id": "T13",
@@ -398,7 +410,8 @@
       "acceptance_criteria": [
         "pytest lulus"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "tests/test_metrics.py (8 test termasuk penjaga data uji)."
     },
     {
       "id": "T14",
@@ -423,7 +436,8 @@
         "Tabel menampilkan kolom PSNR, SSIM, ΔE, waktu dalam format mean ± std",
         "Baris per kondisi dan baris keseluruhan"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "src/evaluate.py: mean ± std keseluruhan + per kondisi; experiments/common.py menjalankan paralel."
     },
     {
       "id": "T15",
@@ -446,7 +460,8 @@
       "acceptance_criteria": [
         "Baseline per kondisi tersedia untuk dev dan uji"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "results/baseline_dev.csv, results/baseline_test.csv (uji dihitung setelah konfigurasi dikunci)."
     },
     {
       "id": "T16",
@@ -467,7 +482,8 @@
       "acceptance_criteria": [
         "Kolom metrik tanpa acuan ikut muncul di CSV evaluasi"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "mean_lum, std_lum, entropy di src/metrics.py; dipakai di data/metadata.csv."
     },
     {
       "id": "T17",
@@ -490,7 +506,8 @@
         "Tidak ada import cv2/skimage di from_scratch.py",
         "Menangani citra konstan tanpa pembagian nol"
       ],
-      "status": "done"
+      "status": "done",
+      "notes": "Selisih 0 terhadap cv2.equalizeHist."
     },
     {
       "id": "T18",
@@ -514,7 +531,8 @@
         "Mendukung 1 kanal dan 3 kanal, k = 3, 5, 7",
         "Berjalan di resolusi kerja tanpa kehabisan memori"
       ],
-      "status": "done"
+      "status": "done",
+      "notes": "Selisih 0 terhadap cv2.medianBlur; dipakai di eksperimen T30 (median_3_scratch)."
     },
     {
       "id": "T19",
@@ -564,7 +582,8 @@
         "≥ 10 baris per operasi",
         "Kolom max_diff, mean_diff, t_ours, t_lib, speed_ratio"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "results/verification.csv dan verification_full.csv: selisih 0 pada 10 citra; versi sendiri 6-17x (HE) dan 114-207x (median) lebih lambat."
     },
     {
       "id": "T21",
@@ -586,7 +605,8 @@
       "acceptance_criteria": [
         "Setiap selisih tak nol punya penjelasan"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "Ditulis di laporan Bagian 5 (docs/report/02_isi.md)."
     },
     {
       "id": "T22",
@@ -608,7 +628,8 @@
       "acceptance_criteria": [
         "Konversi bolak-balik RGB→YCrCb→RGB tanpa perubahan berarti (selisih ≤ 1-2)"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "src/preprocess.py: YCrCb, Lab, HSV, RGB per kanal, dan mode rasio luminans."
     },
     {
       "id": "T23",
@@ -631,7 +652,8 @@
       "acceptance_criteria": [
         "Empat metode punya antarmuka sama f(img, **params) -> img"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "median (cv2/scratch), Gaussian, bilateral, NLM."
     },
     {
       "id": "T24",
@@ -654,7 +676,8 @@
       "acceptance_criteria": [
         "Setiap metode bisa diterapkan ke kanal Y saja atau ke tiap kanal RGB"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "gamma, gamma adaptif, HE (scratch/cv2), CLAHE, SSR, MSR (+ illum_flatten untuk T39)."
     },
     {
       "id": "T25",
@@ -675,7 +698,8 @@
       "acceptance_criteria": [
         "amount=0 menghasilkan citra identik"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "unsharp mask; tuning memilih amount 0 (tidak dipakai)."
     },
     {
       "id": "T26",
@@ -698,7 +722,8 @@
       "acceptance_criteria": [
         "Bisa dinyalakan/dimatikan lewat konfigurasi pipeline"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "gray-world diimplementasikan dan diuji di T31: memperburuk 30/30 citra, tidak dipakai. Ditambah saturation_boost (dipakai, x1.5)."
     },
     {
       "id": "T27",
@@ -725,7 +750,8 @@
         "Bisa dijalankan untuk satu citra dan satu folder dari CLI",
         "Keluaran antartahap bisa disimpan"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "src/pipeline.py + CLI (file/folder), keluaran antartahap untuk analisis kegagalan."
     },
     {
       "id": "T28",
@@ -749,7 +775,8 @@
       "acceptance_criteria": [
         "Ada test yang membuktikan runner menolak skenario uji"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "experiments/common.py: paralel per citra, guarded_pairs menolak skenario uji (diuji)."
     },
     {
       "id": "T29",
@@ -772,7 +799,8 @@
       "acceptance_criteria": [
         "Tabel mean ± std per metode dan per kondisi"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "Gamma adaptif menang (SSIM 0.723); HE 0.552, CLAHE 0.523, MSR 0.566. results/exp_contrast.md, fig_contrast.png."
     },
     {
       "id": "T30",
@@ -795,7 +823,8 @@
       "acceptance_criteria": [
         "Tabel per metode, per kondisi, termasuk waktu eksekusi"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "Pada skala 1/4 semua filter menurunkan SSIM (tanpa filter 0.723 vs median 0.690). Studi skala: pada resolusi penuh urutannya terbalik (results/figures/denoise_vs_scale.png)."
     },
     {
       "id": "T31",
@@ -818,7 +847,8 @@
       "acceptance_criteria": [
         "Keputusan untuk tiap variabel ditulis dengan angka pendukung"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "YCrCb terbaik; gray-world memperburuk; saturasi memperbaiki ΔE; NLM sebelum kontras lebih baik."
     },
     {
       "id": "T32",
@@ -843,7 +873,8 @@
       "acceptance_criteria": [
         "Setiap parameter terpilih punya tabel/heatmap pendukung"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "Gamma adaptif target 0.38; CLAHE clip 1.0 tile 16; tanpa filter; unsharp 0; saturasi 1.5 (grid diperluas ke 2.5). Heatmap di results/figures/."
     },
     {
       "id": "T33",
@@ -869,7 +900,8 @@
       "acceptance_criteria": [
         "p-value dan arah perbedaan dilaporkan untuk tiap perbandingan"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "results/wilcoxon_dev.csv (experiments/dev_stats.py). CLAHE vs tanpa CLAHE tidak signifikan (p = 0.16), dilaporkan apa adanya."
     },
     {
       "id": "T34",
@@ -894,7 +926,8 @@
         "Git tag (misalnya config-locked) dibuat sebelum T35",
         "Setiap parameter punya alasan"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "configs/final.json (_meta.locked) + git tag config-locked sebelum evaluasi uji; docs/parameter_rationale.md."
     },
     {
       "id": "T35",
@@ -920,7 +953,8 @@
         "Pipeline final dibandingkan dengan baseline di semua metrik",
         "Kondisi yang tidak membaik dilaporkan apa adanya"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "Uji n=20: PSNR 9.68 -> 17.21, SSIM 0.322 -> 0.749, ΔE 27.73 -> 12.84; 14 ms/citra (1/4), 177 ms (penuh). results/final_test.md."
     },
     {
       "id": "T36",
@@ -943,7 +977,8 @@
       "acceptance_criteria": [
         "Setiap klaim 'A lebih baik dari B' di laporan punya p-value"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "Final vs baseline 20/20, p < 0.001 di ketiga metrik; vs gamma adaptif standar: SSIM p = 0.002, ΔE p = 0.012, PSNR p = 0.57."
     },
     {
       "id": "T37",
@@ -966,7 +1001,8 @@
       "acceptance_criteria": [
         "Pemilihan sepenuhnya otomatis dan bisa diulang"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "Terburuk (SSIM): s02_k3, s09_k3, s05_k3, s09_k1. Panel di results/failures/."
     },
     {
       "id": "T38",
@@ -988,7 +1024,8 @@
       "acceptance_criteria": [
         "≥ 3 kasus, masing-masing dengan tahap penyebab, penjelasan, dan usulan perbaikan"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "K3: tekstur hilang saat pengambilan (frek. tinggi ±50% acuan). s09/s10: target kecerahan tetap vs acuan lebih terang. K1: gradien cahaya berbeda. Di laporan Bagian 7.2."
     },
     {
       "id": "T39",
@@ -1010,7 +1047,8 @@
       "acceptance_criteria": [
         "Hasil dilaporkan terpisah; konfigurasi utama tidak diubah diam-diam"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "A (unsharp ISO tinggi) ditolak di dev; B (mask bayangan) ditolak; C (koreksi iluminasi parsial) ΔE 12.84 -> 12.68 di uji (p = 0.03), dilaporkan terpisah."
     },
     {
       "id": "T40",
@@ -1035,7 +1073,8 @@
       "acceptance_criteria": [
         "python run_all.py mencetak tabel metrik keseluruhan dan per kondisi tanpa intervensi manual"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "python run_all.py (±2 menit), --quick (±15 detik), --experiments."
     },
     {
       "id": "T41",
@@ -1057,7 +1096,8 @@
       "acceptance_criteria": [
         "Orang luar bisa menjalankan proyek hanya dari README"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "README.md: instalasi, dataset, perintah, struktur, aturan data."
     },
     {
       "id": "T42",
@@ -1076,7 +1116,8 @@
       "acceptance_criteria": [
         "Angka sama (atau selisih dijelaskan)"
       ],
-      "status": "todo"
+      "status": "in_progress",
+      "notes": "Clone bersih + venv baru + pip install -r requirements.txt di mesin yang sama: 65 test lulus, run_all.py selesai 123 s dengan angka identik dengan results/final_test.csv. Tanpa dataset, test penjaga data uji di-skip dengan pesan jelas. Masih perlu dicoba di laptop anggota lain."
     },
     {
       "id": "T43",
@@ -1099,7 +1140,8 @@
       "acceptance_criteria": [
         "Bagian Dataset memuat cara pembuatan ground truth dan pengaturan kamera"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "docs/report/01_pendahuluan_teori.md dan 02_isi.md Bagian 3-4."
     },
     {
       "id": "T44",
@@ -1121,7 +1163,8 @@
       "acceptance_criteria": [
         "Setiap keputusan merujuk ke angka"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "docs/report/02_isi.md Bagian 5-6."
     },
     {
       "id": "T45",
@@ -1145,7 +1188,8 @@
       "acceptance_criteria": [
         "Angka di laporan identik dengan CSV di results/"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "docs/report/02_isi.md Bagian 7-8; angka diambil dari results/."
     },
     {
       "id": "T46",
@@ -1166,7 +1210,8 @@
       "acceptance_criteria": [
         "Setiap anggota tercantum dan punya commit atas nama sendiri"
       ],
-      "status": "todo"
+      "status": "in_progress",
+      "notes": "docs/report/03_lampiran.md: pernyataan AI sudah ditulis; nama anggota, tautan commit, dan konfirmasi pemahaman kode masih [isi]."
     },
     {
       "id": "T47",
@@ -1191,7 +1236,8 @@
       "acceptance_criteria": [
         "8-12 halaman di luar lampiran, sesuai sistematika PRD 10"
       ],
-      "status": "todo"
+      "status": "done",
+      "notes": "laporan.pdf, 10 halaman termasuk lampiran (±9 halaman isi), dibuat dengan docs/report/build_report.py. Isian [isi] di header perlu dilengkapi lalu build ulang."
     },
     {
       "id": "T48",
@@ -1215,7 +1261,8 @@
       "acceptance_criteria": [
         "Setiap anggota bisa menjawab pertanyaan tentang tahap mana pun"
       ],
-      "status": "todo"
+      "status": "blocked",
+      "notes": "Naskah demo dan jawaban tanya jawab di docs/demo_script.md. Perekaman video/demo langsung harus dilakukan kelompok."
     },
     {
       "id": "T49",
@@ -1237,7 +1284,15 @@
       "acceptance_criteria": [
         "Semua butir PRD 16 tercentang"
       ],
-      "status": "todo"
+      "status": "blocked",
+      "notes": "Menunggu T01, T46, T48 dan commit atas nama tiap anggota; pengumpulan lewat komti dilakukan kelompok."
     }
-  ]
+  ],
+  "status_summary": {
+    "updated": "2026-10-13",
+    "done": 44,
+    "in_progress": 2,
+    "blocked": 3,
+    "blocked_reason": "Butuh data/aksi kelompok: nama anggota dan tanggal (T01, T46), rekaman demo (T48), pengumpulan (T49)."
+  }
 }

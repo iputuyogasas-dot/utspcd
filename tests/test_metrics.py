@@ -72,6 +72,9 @@ def test_no_reference():
 
 
 def test_runner_refuses_test_scenarios():
+    from src import config
+    if not config.DATA_DIR.is_dir():
+        pytest.skip(f"dataset tidak ada di {config.DATA_DIR} (atur PCD_DATA_DIR)")
     from experiments.common import TestDataAccessError, guarded_pairs
     from src.split import load_split
 

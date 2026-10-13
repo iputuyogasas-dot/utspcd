@@ -8,7 +8,7 @@
 | Bahasa dan pustaka | Python 3, NumPy, OpenCV, scikit-image, Matplotlib |
 | Kelompok | `[isi nama kelompok]` (`[3/4/5]` anggota) |
 | Tenggat | `[isi tanggal perpanjangan]` (tenggat awal: 13 Oktober 2026) |
-| Status dokumen | Draf v1 |
+| Status dokumen | v1.1 (koreksi dataset dan kebijakan AI, 13-10-2026) |
 
 ---
 
@@ -70,9 +70,12 @@ Target numerik PSNR/SSIM **tidak ditetapkan di awal**, karena nilainya bergantun
 |---|---|---|---|---|
 | K1 | Redup | Sebagian lampu mati | 100 | 1/30 |
 | K2 | Sangat gelap | Satu lampu kecil saja | 100 | 1/30 |
-| K3 | Berderau | Cahaya redup | 3200-6400 | 1/100 |
+| K3 | Berderau | Cahaya redup | 3200 | 1/90 |
 | K4 | Tidak merata | Satu lampu dari samping | 100 | 1/30 |
 | K5 | Remang | Tirai tertutup, tanpa lampu | 100 | 1/30 |
+| Acuan | Terang | Semua lampu menyala | 800 | 1/20 |
+
+Nilai ISO/rana sesuai EXIF (`data/metadata.csv`); koreksi dari Draf v1: K3 1/90 s (bukan 1/100) dan pengaturan acuan ditambahkan.
 
 Memenuhi syarat minimal tiga kondisi berbeda. Pelaporan metrik wajib per kondisi.
 
@@ -80,7 +83,7 @@ Memenuhi syarat minimal tiga kondisi berbeda. Pelaporan metrik wajib per kondisi
 
 Acuan harus berupa adegan **yang sama persis** dengan citra gelap, dipotret dengan tripod/penyangga tetap pada pencahayaan baik. Objek tidak boleh bergeser antara acuan dan citra gelap.
 
-> **Risiko terbuka:** pada pemeriksaan thumbnail, posisi objek di beberapa skenario (misalnya s08, s09, s10) tampak berbeda antara acuan dan K1-K5. Ini harus diverifikasi (lihat Bagian 11). Pasangan yang tidak sejajar tidak valid untuk PSNR/SSIM.
+> **Risiko ditutup (13-10-2026):** `audit_dataset.py` pada `DATASET NEW` mengukur pergeseran global median 0,22 px (maks. 1,30 px pada skala 1/4) dan rotasi maks. 0,2°; posisi objek s08-s10 sama dengan acuan. Ke-50 pasangan valid (lihat `docs/dataset_notes.md`).
 
 ### 5.4 Ground truth
 
@@ -179,7 +182,7 @@ Grid search kecil untuk gamma, clip limit dan ukuran tile CLAHE, ukuran kernel m
 
 - Pilih 3-5 citra uji dengan skor terburuk **secara otomatis**.
 - Untuk tiap kasus: tunjukkan citra, tentukan tahap penyebab, jelaskan, dan usulkan perbaikan. Jika waktu memungkinkan, uji perbaikan dan laporkan angkanya.
-- Hipotesis awal untuk diuji (bukan kesimpulan): K5 hampir tanpa informasi (kuantisasi 8-bit), derau berwarna menguat pada K3, halo/over-enhancement akibat CLAHE, dan area saturasi pada K4.
+- Hipotesis awal untuk diuji (bukan kesimpulan): K5 hampir tanpa informasi (kuantisasi 8-bit), derau berwarna menguat pada K3, halo/over-enhancement akibat CLAHE, dan area saturasi pada K4. Hasil pengujian: lihat laporan Bagian 7.2 (K5 tidak hampir hitam; kegagalan utama K3 berupa tekstur hilang saat pengambilan).
 
 ## 10. Luaran
 
