@@ -12,3 +12,7 @@ __pycache__/
 .venv/
 venv/
 *.tmp.png
+
+# File antara / log konsol
+docs/report/laporan.html
+*log.txt

@@ -3,8 +3,6 @@
 import cv2
 import numpy as np
 
-SPACES = ("ycrcb", "lab", "hsv", "rgb", "ratio")
-
 
 def validate(rgb):
     rgb = np.asarray(rgb)

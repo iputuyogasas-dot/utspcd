@@ -1,13 +1,12 @@
-"""Evaluasi metode pada pasangan citra dan agregasi per kondisi (F5)."""
+"""Pemilihan pasangan per subset dan agregasi metrik per kondisi (F5).
 
-import time
+Eksekusi metode pada citra ada di experiments/common.run_configs.
+"""
 
-import numpy as np
 import pandas as pd
 
 from src import config
-from src.dataset import list_pairs, load_pair
-from src.metrics import full_reference, no_reference
+from src.dataset import list_pairs
 from src.split import load_split
 
 METRICS = ["psnr", "ssim", "delta_e"]
@@ -21,28 +20,6 @@ def pairs_for(subset):
     if subset not in ("dev", "test"):
         raise ValueError(f"subset tidak dikenal: {subset}")
     return list_pairs(scenarios=set(split[subset]))
-
-
-def evaluate(method, pairs, method_name="method", scale=config.WORK_SCALE,
-             mask_fn=None, extra_metrics=False):
-    """Jalankan method(rgb) -> rgb pada tiap pasangan; kembalikan DataFrame per citra.
-
-    mask_fn(pair, dark, ref) -> mask boolean atau None (opsional).
-    """
-    rows = []
-    for pair in pairs:
-        dark, ref = load_pair(pair, scale)
-        t0 = time.perf_counter()
-        out = method(dark)
-        elapsed = time.perf_counter() - t0
-        mask = mask_fn(pair, dark, ref) if mask_fn else None
-        row = {"method": method_name, "image": pair.name, "scenario": pair.scenario,
-               "condition": pair.condition, **full_reference(out, ref, mask),
-               "time_s": elapsed}
-        if extra_metrics:
-            row.update(no_reference(out))
-        rows.append(row)
-    return pd.DataFrame(rows)
 
 
 def summarize(df, metrics=METRICS + ["time_s"], by="method"):
@@ -86,8 +63,3 @@ def to_markdown(table):
     for _, r in table.iterrows():
         lines.append("| " + " | ".join(str(r[c]) for c in cols) + " |")
     return "\n".join(lines)
-
-
-def identity(rgb):
-    """Baseline: citra gelap apa adanya."""
-    return np.array(rgb)

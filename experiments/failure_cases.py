@@ -26,7 +26,7 @@ import pandas as pd
 from experiments.final_eval import load_final
 from src import config, plotstyle
 from src.dataset import list_pairs, load_pair
-from src.metrics import delta_e, full_reference, luminance, ssim
+from src.metrics import delta_e, full_reference, luminance
 from src.pipeline import Pipeline
 
 N_WORST = 4
