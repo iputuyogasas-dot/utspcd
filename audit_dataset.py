@@ -12,7 +12,7 @@ Pasangan dinyatakan LOLOS bila |pergeseran global| <= 1 px, |rotasi| <= 0.2°,
 dan pergeseran blok maksimum <= 2 px (semua pada skala 1/4, setara 4/8 px
 di resolusi penuh).
 
-Keluaran: results/audit.csv dan results/audit/sXX_overlay.png.
+Keluaran: results/dataset/audit.csv dan results/dataset/audit/sXX_overlay.png.
 """
 
 import cv2
@@ -78,7 +78,7 @@ def overlay(ref, dark):
 
 def main():
     rows = []
-    out_dir = config.RESULTS_DIR / "audit"
+    out_dir = config.DATASET_RESULTS_DIR / "audit"
     by_scenario = {}
     for pair in list_pairs():
         ref, dark = load_image(pair.ref_path), load_image(pair.dark_path)
@@ -102,7 +102,7 @@ def main():
         save_rgb(out_dir / f"{sc}_overlay.png", np.hstack(small))
 
     df = pd.DataFrame(rows)
-    df.to_csv(config.RESULTS_DIR / "audit.csv", index=False)
+    df.to_csv(config.DATASET_RESULTS_DIR / "audit.csv", index=False)
     pd.set_option("display.width", 200)
     print(df[["image", "shift_px", "ecc_rotation_deg", "block_shift_max_px", "blocks_used", "status"]]
           .round(3).to_string(index=False))

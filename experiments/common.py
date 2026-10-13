@@ -77,7 +77,7 @@ def run_configs(configs, subset="dev", allow_test=False, scale=config.WORK_SCALE
     if verbose:
         print(f"[{len(configs)} konfigurasi × {len(pairs)} citra ({subset}) selesai dalam {time.time() - t0:.0f} s]")
     if out_csv:
-        out_csv = config.RESULTS_DIR / out_csv
+        out_csv = config.RESULTS_DIR / out_csv  # relatif terhadap results/
         out_csv.parent.mkdir(parents=True, exist_ok=True)
         df.to_csv(out_csv, index=False)
     return df
@@ -90,10 +90,14 @@ def ranking(df, metrics=("psnr", "ssim", "delta_e")):
 
 
 def report(df, name, title=None, by="method"):
-    """Simpan ringkasan per kondisi (CSV + Markdown) dan cetak tabelnya."""
+    """Simpan ringkasan per kondisi (CSV + Markdown) dan cetak tabelnya.
+
+    `name` relatif terhadap results/, misalnya "experiments/contrast".
+    """
     from src.evaluate import format_table, summarize, to_markdown
 
     summary = summarize(df, by=by)
+    (config.RESULTS_DIR / name).parent.mkdir(parents=True, exist_ok=True)
     summary.to_csv(config.RESULTS_DIR / f"{name}_summary.csv", index=False)
     table = format_table(summary, by=by)
     overall = table[table.kondisi == "Semua"].drop(columns="kondisi")

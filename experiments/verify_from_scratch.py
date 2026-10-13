@@ -67,8 +67,9 @@ def main(argv=None):
 
     df = pd.DataFrame(rows)
     df["speed_ratio"] = df.t_ours_s / df.t_lib_s
-    name = "verification_full.csv" if args.full else "verification.csv"
-    df.to_csv(config.RESULTS_DIR / name, index=False)
+    name = "from_scratch_full.csv" if args.full else "from_scratch.csv"
+    config.VERIFICATION_DIR.mkdir(parents=True, exist_ok=True)
+    df.to_csv(config.VERIFICATION_DIR / name, index=False)
 
     pd.set_option("display.width", 200)
     print(df[["image", "operation", "ksize", "max_diff", "mean_diff", "t_ours_s", "t_lib_s", "speed_ratio"]]

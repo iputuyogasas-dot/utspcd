@@ -1,7 +1,7 @@
 """T37/T38: pemilihan otomatis citra uji terburuk dan diagnosis per tahap (F8).
 
 Aturan pemilihan (ditetapkan sebelum melihat hasil uji): N_WORST citra uji
-dengan SSIM terendah pada pipeline final (results/final_test.csv).
+dengan SSIM terendah pada pipeline final (results/final/test.csv).
 
 Untuk setiap kasus:
   - panel: gelap | keluaran tiap tahap | hasil | acuan | peta galat
@@ -30,11 +30,11 @@ from src.metrics import delta_e, full_reference, luminance
 from src.pipeline import Pipeline
 
 N_WORST = 4
-OUT = config.RESULTS_DIR / "failures"
+OUT = config.FAILURES_DIR
 
 
 def select_worst(n=N_WORST):
-    df = pd.read_csv(config.RESULTS_DIR / "final_test.csv")
+    df = pd.read_csv(config.FINAL_DIR / "test.csv")
     final = df[df.method == "final"].sort_values("ssim")
     return final.head(n), final
 

@@ -243,7 +243,7 @@
       "id": "T07",
       "phase": "P1",
       "title": "audit_dataset.py: periksa keselarasan pasangan",
-      "description": "Untuk tiap pasangan: (1) pergeseran global dengan cv2.phaseCorrelate pada citra yang dinormalisasi kecerahannya, (2) cv2.findTransformECC untuk rotasi/skala, (3) peta korelasi lokal pada gradien untuk mendeteksi objek yang bergeser. Simpan results/audit.csv dan panel overlay. Pemeriksaan awal: pergeseran < 1 px di 256 px; konfirmasi di resolusi penuh dan tutup risiko PRD 5.3 jika lolos.",
+      "description": "Untuk tiap pasangan: (1) pergeseran global dengan cv2.phaseCorrelate pada citra yang dinormalisasi kecerahannya, (2) cv2.findTransformECC untuk rotasi/skala, (3) peta korelasi lokal pada gradien untuk mendeteksi objek yang bergeser. Simpan results/dataset/audit.csv dan panel overlay. Pemeriksaan awal: pergeseran < 1 px di 256 px; konfirmasi di resolusi penuh dan tutup risiko PRD 5.3 jika lolos.",
       "role": "data",
       "priority": "wajib",
       "depends_on": [
@@ -255,15 +255,15 @@
       ],
       "outputs": [
         "audit_dataset.py",
-        "results/audit.csv",
-        "results/audit/*.png"
+        "results/dataset/audit.csv",
+        "results/dataset/audit/*.png"
       ],
       "acceptance_criteria": [
         "Setiap dari 50 pasangan punya nilai shift dan status lolos/gagal dengan ambang yang ditulis",
         "Pasangan gagal diputuskan: foto ulang, mask, atau dikeluarkan (dicatat)"
       ],
       "status": "done",
-      "notes": "results/audit.csv: 48/50 lolos; s01_k3 (1.03 px) dan s09_k3 (1.30 px) ditandai, kompensasi pergeseran tidak mengubah SSIM (<= 0.006) -> efek derau. Semua 50 pasangan dipakai."
+      "notes": "results/dataset/audit.csv: 48/50 lolos; s01_k3 (1.03 px) dan s09_k3 (1.30 px) ditandai, kompensasi pergeseran tidak mengubah SSIM (<= 0.006) -> efek derau. Semua 50 pasangan dipakai."
     },
     {
       "id": "T08",
@@ -358,13 +358,13 @@
       "outputs": [
         "results/figures/contact_sheet.png",
         "results/figures/hist_per_condition.png",
-        "results/dataset_stats.csv"
+        "results/dataset/dataset_stats.csv"
       ],
       "acceptance_criteria": [
         "Gambar dan tabel siap dipakai di bagian Dataset laporan"
       ],
       "status": "done",
-      "notes": "results/dataset_stats.csv, contact_sheet(_boost).png, hist_per_condition.png, scene_differences.png."
+      "notes": "results/dataset/dataset_stats.csv, contact_sheet(_boost).png, hist_per_condition.png, scene_differences.png."
     },
     {
       "id": "T12",
@@ -454,14 +454,14 @@
         "9.3"
       ],
       "outputs": [
-        "results/baseline_dev.csv",
-        "results/baseline_test.csv"
+        "results/experiments/baseline_dev.csv",
+        "results/final/baseline_test.csv"
       ],
       "acceptance_criteria": [
         "Baseline per kondisi tersedia untuk dev dan uji"
       ],
       "status": "done",
-      "notes": "results/baseline_dev.csv, results/baseline_test.csv (uji dihitung setelah konfigurasi dikunci)."
+      "notes": "results/experiments/baseline_dev.csv, results/final/baseline_test.csv (uji dihitung setelah konfigurasi dikunci)."
     },
     {
       "id": "T16",
@@ -576,14 +576,14 @@
       ],
       "outputs": [
         "experiments/verify_from_scratch.py",
-        "results/verification.csv"
+        "results/verification/from_scratch.csv"
       ],
       "acceptance_criteria": [
         "≥ 10 baris per operasi",
         "Kolom max_diff, mean_diff, t_ours, t_lib, speed_ratio"
       ],
       "status": "done",
-      "notes": "results/verification.csv dan verification_full.csv: selisih 0 pada 10 citra; versi sendiri 6-17x (HE) dan 114-207x (median) lebih lambat."
+      "notes": "results/verification/from_scratch.csv dan from_scratch_full.csv: selisih 0 pada 10 citra; versi sendiri 6-17x (HE) dan 114-207x (median) lebih lambat."
     },
     {
       "id": "T21",
@@ -794,13 +794,13 @@
       ],
       "outputs": [
         "experiments/exp_contrast.py",
-        "results/exp_contrast.csv"
+        "results/experiments/contrast.csv"
       ],
       "acceptance_criteria": [
         "Tabel mean ± std per metode dan per kondisi"
       ],
       "status": "done",
-      "notes": "Gamma adaptif menang (SSIM 0.723); HE 0.552, CLAHE 0.523, MSR 0.566. results/exp_contrast.md, fig_contrast.png."
+      "notes": "Gamma adaptif menang (SSIM 0.723); HE 0.552, CLAHE 0.523, MSR 0.566. results/experiments/contrast.md, fig_contrast.png."
     },
     {
       "id": "T30",
@@ -818,7 +818,7 @@
       ],
       "outputs": [
         "experiments/exp_denoise.py",
-        "results/exp_denoise.csv"
+        "results/experiments/denoise.csv"
       ],
       "acceptance_criteria": [
         "Tabel per metode, per kondisi, termasuk waktu eksekusi"
@@ -842,7 +842,7 @@
       ],
       "outputs": [
         "experiments/exp_order_colorspace.py",
-        "results/exp_order_colorspace.csv"
+        "results/experiments/order_colorspace.csv"
       ],
       "acceptance_criteria": [
         "Keputusan untuk tiap variabel ditulis dengan angka pendukung"
@@ -895,13 +895,13 @@
       ],
       "outputs": [
         "src/stats.py",
-        "results/wilcoxon_dev.csv"
+        "results/experiments/wilcoxon_dev.csv"
       ],
       "acceptance_criteria": [
         "p-value dan arah perbedaan dilaporkan untuk tiap perbandingan"
       ],
       "status": "done",
-      "notes": "results/wilcoxon_dev.csv (experiments/dev_stats.py). CLAHE vs tanpa CLAHE tidak signifikan (p = 0.16), dilaporkan apa adanya."
+      "notes": "results/experiments/wilcoxon_dev.csv (experiments/dev_stats.py). CLAHE vs tanpa CLAHE tidak signifikan (p = 0.16), dilaporkan apa adanya."
     },
     {
       "id": "T34",
@@ -946,7 +946,7 @@
       ],
       "outputs": [
         "experiments/final_eval.py",
-        "results/final_test.csv",
+        "results/final/test.csv",
         "results/final_summary.md"
       ],
       "acceptance_criteria": [
@@ -954,7 +954,7 @@
         "Kondisi yang tidak membaik dilaporkan apa adanya"
       ],
       "status": "done",
-      "notes": "Uji n=20: PSNR 9.68 -> 17.21, SSIM 0.322 -> 0.749, ΔE 27.73 -> 12.84; 14 ms/citra (1/4), 177 ms (penuh). results/final_test.md."
+      "notes": "Uji n=20: PSNR 9.68 -> 17.21, SSIM 0.322 -> 0.749, ΔE 27.73 -> 12.84; 14 ms/citra (1/4), 177 ms (penuh). results/final/test.md."
     },
     {
       "id": "T36",
@@ -972,7 +972,7 @@
         "3.2"
       ],
       "outputs": [
-        "results/wilcoxon_test.csv"
+        "results/final/wilcoxon.csv"
       ],
       "acceptance_criteria": [
         "Setiap klaim 'A lebih baik dari B' di laporan punya p-value"
@@ -1103,7 +1103,7 @@
       "id": "T42",
       "phase": "P7",
       "title": "Uji reproduksibilitas di lingkungan bersih",
-      "description": "Clone baru + venv baru + pip install + python run_all.py di mesin anggota lain. Bandingkan angka dengan results/final_test.csv.",
+      "description": "Clone baru + venv baru + pip install + python run_all.py di mesin anggota lain. Bandingkan angka dengan results/final/test.csv.",
       "role": "data",
       "priority": "wajib",
       "depends_on": [
@@ -1117,7 +1117,7 @@
         "Angka sama (atau selisih dijelaskan)"
       ],
       "status": "in_progress",
-      "notes": "Clone bersih + venv baru + pip install -r requirements.txt di mesin yang sama: 65 test lulus, run_all.py selesai 123 s dengan angka identik dengan results/final_test.csv. Tanpa dataset, test penjaga data uji di-skip dengan pesan jelas. Masih perlu dicoba di laptop anggota lain."
+      "notes": "Clone bersih + venv baru + pip install -r requirements.txt di mesin yang sama: 65 test lulus, run_all.py selesai 123 s dengan angka identik dengan results/final/test.csv. Tanpa dataset, test penjaga data uji di-skip dengan pesan jelas. Masih perlu dicoba di laptop anggota lain."
     },
     {
       "id": "T43",

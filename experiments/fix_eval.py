@@ -36,7 +36,7 @@ from src.metrics import luminance
 from src.split import load_split
 from src.stats import compare_many
 
-R = config.RESULTS_DIR
+R = config.FIXES_DIR
 WIL_COLS = ["metric", "median_diff", "a_wins", "n", "p_value"]
 
 
@@ -47,9 +47,9 @@ def fix_a(final):
             c = copy.deepcopy(final)
             c["sharpen"] = {"sigma": s, "amount": a}
             grid[f"sharpen_s{s}_a{a}"] = c
-    dev = run_configs(grid, subset="dev", conditions=["K3"], out_csv="fix_a_dev.csv")
+    dev = run_configs(grid, subset="dev", conditions=["K3"], out_csv="fixes/a_dev.csv")
     table = select(dev)
-    table.round(4).to_csv(R / "fix_eval_a.csv")
+    table.round(4).to_csv(R / "a_dev_ranking.csv")
     print("\nA. Tuning unsharp untuk ISO tinggi (dev K3, n=6):\n" + table.round(4).to_string())
     if table.index[0] == "final":
         print("Tidak ada varian yang mengalahkan pipeline final di dev; perbaikan A tidak diuji di uji.")
@@ -72,7 +72,8 @@ def illumination_ratio_dev(sigma=15, threshold=0.6):
         rows.append({"image": p.name, "condition": p.condition, "frac_below": float((q < threshold).mean()),
                      "p5": float(np.percentile(q, 5))})
     df = pd.DataFrame(rows)
-    df.to_csv(R / "fix_eval_b_dev.csv", index=False)
+    R.mkdir(parents=True, exist_ok=True)
+    df.to_csv(R / "b_dev_illumination.csv", index=False)
     summary = df.groupby("condition")[["frac_below", "p5"]].agg(["mean", "min", "max"])
     print(f"\nB. Porsi piksel dengan iluminasi relatif < {threshold} × median (dev, n=6 per kondisi):\n"
           + summary.round(3).to_string())
@@ -86,9 +87,9 @@ def fix_c(final):
             c = copy.deepcopy(final)
             c["contrast"] = [{"method": "illum_flatten", "sigma": sigma, "alpha": alpha}] + c["contrast"]
             grid[f"flat_s{sigma}_a{alpha}"] = c
-    dev = run_configs(grid, subset="dev", out_csv="fix_c_dev.csv")
+    dev = run_configs(grid, subset="dev", out_csv="fixes/c_dev.csv")
     table = select(dev)
-    table.round(4).to_csv(R / "fix_eval_c_dev.csv")
+    table.round(4).to_csv(R / "c_dev_ranking.csv")
     print("\nC. Tuning koreksi iluminasi parsial (dev, n=30):\n" + table.round(4).to_string())
     best = table.index[0]
     if best == "final":
@@ -98,7 +99,7 @@ def fix_c(final):
     wil_dev = compare_many(dev, [(best, "final")])
     print(f"\nWilcoxon dev: {best} vs final\n" + wil_dev[WIL_COLS].round(4).to_string(index=False))
     test = run_configs({"final": final, best: grid[best]}, subset="test", allow_test=True,
-                       out_csv="fix_c_test.csv")
+                       out_csv="fixes/c_test.csv")
     wil_test = compare_many(test, [(best, "final")])
     overall = test.groupby("method")[["psnr", "ssim", "delta_e"]].mean()
     per_cond = test.pivot_table(index="condition", columns="method", values=["psnr", "ssim", "delta_e"])
@@ -106,8 +107,8 @@ def fix_c(final):
     print(wil_test[WIL_COLS].round(4).to_string(index=False))
     print("\nPer kondisi:\n" + per_cond.round(3).to_string())
     pd.concat([wil_dev.assign(part="dev"), wil_test.assign(part="test")], ignore_index=True) \
-        .to_csv(R / "fix_eval_c_wilcoxon.csv", index=False)
-    per_cond.round(4).to_csv(R / "fix_eval_c_test_per_condition.csv")
+        .to_csv(R / "c_wilcoxon.csv", index=False)
+    per_cond.round(4).to_csv(R / "c_test_per_condition.csv")
     return best
 
 

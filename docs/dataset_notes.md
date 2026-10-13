@@ -1,6 +1,6 @@
 # Catatan Dataset
 
-Sumber angka: `data/metadata.csv`, `results/dataset_stats.csv`, `results/audit.csv`
+Sumber angka: `data/metadata.csv`, `results/dataset/dataset_stats.csv`, `results/dataset/audit.csv`
 (dibuat oleh `experiments/dataset_stats.py` dan `audit_dataset.py`).
 
 ## Pengambilan
@@ -51,7 +51,7 @@ magnitudo gradien (tidak sensitif terhadap perbedaan kecerahan):
 
 Keputusan: ke-50 pasangan dipakai. Risiko "objek bergeser" di PRD 5.3 (dugaan
 s08-s10) tidak terbukti untuk `DATASET NEW`; posisi objek sama di semua pasangan
-(lihat `results/audit/sXX_overlay.png`, tepi yang sejajar tampak putih).
+(lihat `results/dataset/audit/sXX_overlay.png`, tepi yang sejajar tampak putih).
 
 ## Perbedaan adegan selain keselarasan (T08)
 

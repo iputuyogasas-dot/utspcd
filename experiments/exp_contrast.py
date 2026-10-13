@@ -6,6 +6,7 @@ parameter bawaan yang umum; parameter disetel kemudian di tune.py.
 """
 
 from experiments.common import report, run_configs, ranking
+from src import config
 from src.stats import compare_many
 
 
@@ -27,13 +28,13 @@ CONFIGS = {
 
 
 def main():
-    df = run_configs(CONFIGS, out_csv="exp_contrast.csv")
-    report(df, "exp_contrast", "T29 Perbandingan metode perbaikan kontras (dev)")
+    df = run_configs(CONFIGS, out_csv="experiments/contrast.csv")
+    report(df, "experiments/contrast", "T29 Perbandingan metode perbaikan kontras (dev)")
     rank = ranking(df)
     print("\nPeringkat (SSIM, lalu PSNR):\n" + rank.round(3).to_string())
     top = [m for m in rank.index if m != "baseline"][:3]
     tests = compare_many(df, [(top[0], top[1]), (top[0], top[2]), (top[0], "baseline")])
-    tests.to_csv("results/exp_contrast_wilcoxon.csv", index=False)
+    tests.to_csv(config.EXPERIMENTS_DIR / "contrast_wilcoxon.csv", index=False)
     print("\nWilcoxon:\n" + tests[["a", "b", "metric", "median_diff", "a_wins", "n", "p_value", "better"]]
           .round(4).to_string(index=False))
 

@@ -10,10 +10,10 @@ Metode yang dilaporkan:
   - pipeline final
 
 Keluaran:
-  results/baseline_dev.csv, results/baseline_test.csv   (T15)
-  results/final_test.csv, results/final_test.md, results/final_test_summary.csv
-  results/wilcoxon_test.csv
-  results/timing.csv
+  results/experiments/baseline_dev.csv, results/final/baseline_test.csv   (T15)
+  results/final/test.csv, test.md, test_summary.csv
+  results/final/wilcoxon.csv
+  results/final/timing.csv, timing_methods.csv
 """
 
 import json
@@ -74,17 +74,17 @@ def main():
     final_cfg = load_final()
 
     # Baseline dev (T15) - dev boleh dibaca kapan saja.
-    run_configs({"baseline": None}, subset="dev", out_csv="baseline_dev.csv", verbose=False)
+    run_configs({"baseline": None}, subset="dev", out_csv="experiments/baseline_dev.csv", verbose=False)
 
     configs = {"baseline": None, **ALTERNATIVES, "final": final_cfg}
-    df = run_configs(configs, subset="test", allow_test=True, out_csv="final_test.csv")
-    df[df.method == "baseline"].to_csv(config.RESULTS_DIR / "baseline_test.csv", index=False)
-    summary = report(df, "final_test", "T35 Evaluasi akhir pada citra uji (n=20)")
+    df = run_configs(configs, subset="test", allow_test=True, out_csv="final/test.csv")
+    df[df.method == "baseline"].to_csv(config.FINAL_DIR / "baseline_test.csv", index=False)
+    summary = report(df, "final/test", "T35 Evaluasi akhir pada citra uji (n=20)")
 
     alts = df[~df.method.isin(["baseline", "final"])].groupby("method").ssim.mean()
     best_alt = alts.idxmax()
     tests = compare_many(df, [("final", "baseline"), ("final", best_alt)])
-    tests.to_csv(config.RESULTS_DIR / "wilcoxon_test.csv", index=False)
+    tests.to_csv(config.FINAL_DIR / "wilcoxon.csv", index=False)
     print("\nWilcoxon (uji):\n" + tests[["a", "b", "metric", "median_diff", "a_wins", "n", "p_value", "better"]]
           .round(4).to_string(index=False))
 
@@ -93,12 +93,12 @@ def main():
     print("\nBaseline vs final per kondisi:\n" + per_cond.round(3).to_string())
 
     t = timing(final_cfg)
-    t.to_csv(config.RESULTS_DIR / "timing.csv", index=False)
+    t.to_csv(config.FINAL_DIR / "timing.csv", index=False)
     method_time = df.groupby("method", sort=False).time_s.agg(["mean", "std"]).reset_index()
-    method_time.to_csv(config.RESULTS_DIR / "timing_methods.csv", index=False)
+    method_time.to_csv(config.FINAL_DIR / "timing_methods.csv", index=False)
     print("\nWaktu pipeline final:\n" + t.round(4).to_string(index=False))
 
-    with open(config.RESULTS_DIR / "final_test.md", "a", encoding="utf-8") as f:
+    with open(config.FINAL_DIR / "test.md", "a", encoding="utf-8") as f:
         f.write("\n## Wilcoxon signed-rank (uji)\n\n")
         f.write(to_markdown(tests[["a", "b", "metric", "median_diff", "a_wins", "n", "p_value", "better"]]
                             .round(4)) + "\n")

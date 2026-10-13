@@ -46,9 +46,9 @@ def method_comparison(csv, out, title, label_map=None, chosen=None):
 
 
 def denoise_scale():
-    quarter = pd.read_csv(R / "exp_denoise.csv")
+    quarter = pd.read_csv(R / "experiments/denoise.csv")
     quarter = quarter[quarter.method.isin(["none", "median_3", "bilateral", "nlm_h3"])].assign(scale=0.25)
-    other = pd.read_csv(R / "exp_denoise_scale.csv")
+    other = pd.read_csv(R / "experiments/denoise_scale.csv")
     df = pd.concat([quarter, other])
     names = {"none": "tanpa filter", "median_3": "median 3×3", "bilateral": "bilateral", "nlm_h3": "NLM h=3"}
     colors = dict(zip(names, plotstyle.CATEGORICAL))
@@ -73,7 +73,7 @@ def denoise_scale():
 
 
 def final_per_condition():
-    df = pd.read_csv(R / "final_test.csv")
+    df = pd.read_csv(R / "final/test.csv")
     df = df[df.method.isin(["baseline", "final"])]
     conds = list(config.CONDITIONS)
     plotstyle.apply()
@@ -137,15 +137,15 @@ DENOISE_LABELS = {"none": "tanpa filter", "median_3": "median 3", "median_3_scra
 def main():
     F.mkdir(parents=True, exist_ok=True)
     jobs = [
-        ("exp_contrast.csv", lambda: method_comparison("exp_contrast.csv", "fig_contrast.png",
+        ("experiments/contrast.csv", lambda: method_comparison("experiments/contrast.csv", "fig_contrast.png",
                                                        "T29 Metode perbaikan kontras (dev, n=30); biru = dipilih",
                                                        CONTRAST_LABELS, chosen="adaptive_gamma")),
-        ("exp_denoise.csv", lambda: method_comparison("exp_denoise.csv", "fig_denoise.png",
+        ("experiments/denoise.csv", lambda: method_comparison("experiments/denoise.csv", "fig_denoise.png",
                                                       "T30 Metode reduksi derau, skala 1/4 (dev, n=30); biru = dipilih",
                                                       DENOISE_LABELS, chosen="none")),
-        ("exp_denoise_scale.csv", denoise_scale),
-        ("final_test.csv", final_per_condition),
-        ("final_test.csv", examples),
+        ("experiments/denoise_scale.csv", denoise_scale),
+        ("final/test.csv", final_per_condition),
+        ("final/test.csv", examples),
     ]
     for need, fn in jobs:
         if (R / need).exists():

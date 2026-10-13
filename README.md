@@ -12,8 +12,8 @@ Hasil pada citra uji (4 skenario, 20 citra, tidak dipakai saat tuning):
 | **Pipeline final** | **17,21 ± 1,90** | **0,749 ± 0,049** | **12,84 ± 2,45** |
 
 Lebih baik dari citra mentah pada 20/20 citra di ketiga metrik (Wilcoxon p < 0,001).
-Rincian per kondisi: [`results/final_test.md`](results/final_test.md). Laporan:
-[`laporan.pdf`](laporan.pdf).
+Rincian per kondisi: [`results/final/test.md`](results/final/test.md). Sumber laporan
+ada di [`docs/report/`](docs/report/); PDF dibuat dengan `python docs/report/build_report.py`.
 
 ## Pipeline final
 
@@ -101,7 +101,15 @@ src/
 experiments/        skrip eksperimen (lihat di atas)
 tests/              unit test
 configs/final.json  konfigurasi final (terkunci, git tag config-locked)
-results/            CSV, tabel Markdown, gambar, panel kegagalan
+results/
+  final/            hasil akhir di citra uji: test.md (baca ini dulu), Wilcoxon, waktu
+  experiments/      eksperimen dev T29-T31 (.csv per citra, _summary, .md, _wilcoxon)
+  tuning/           grid search T32 per langkah + best_config.json
+  failures/         panel 4 citra uji terburuk + diagnosis per tahap
+  fixes/            uji usulan perbaikan A/B/C (T39)
+  dataset/          audit keselarasan + statistik dataset
+  verification/     operasi dari nol vs OpenCV
+  figures/          gambar untuk laporan
 docs/               PRD, tasks.json, catatan dataset, alasan parameter, sumber laporan
 audit_dataset.py
 run_all.py
@@ -120,7 +128,7 @@ run_all.py
 [`src/from_scratch.py`](src/from_scratch.py) berisi ekualisasi histogram dan filter
 median yang hanya memakai NumPy. Keduanya identik dengan `cv2.equalizeHist` dan
 `cv2.medianBlur` (selisih piksel 0 pada 10 citra dan 57 kasus uji), tetapi 6-207×
-lebih lambat. Lihat [`results/verification.csv`](results/verification.csv).
+lebih lambat. Lihat [`results/verification/from_scratch.csv`](results/verification/from_scratch.csv).
 
 ## Penggunaan AI
 

@@ -7,6 +7,7 @@ Basis: gamma adaptif target 0.4 (pemenang T29).
 """
 
 from experiments.common import ranking, report, run_configs
+from src import config
 from src.stats import compare_many
 
 AG = [{"method": "adaptive_gamma", "target": 0.4}]
@@ -44,11 +45,11 @@ GROUPS = {
 
 def main():
     configs = {name: c for g in GROUPS.values() for name, c in g.items()}
-    df = run_configs(configs, out_csv="exp_order_colorspace.csv")
+    df = run_configs(configs)
     group_of = {name: g for g, items in GROUPS.items() for name in items}
     df["group"] = df.method.map(group_of)
-    df.to_csv("results/exp_order_colorspace.csv", index=False)
-    report(df, "exp_order_colorspace", "T31 Urutan, ruang warna, white balance, saturasi (dev)")
+    df.to_csv(config.EXPERIMENTS_DIR / "order_colorspace.csv", index=False)
+    report(df, "experiments/order_colorspace", "T31 Urutan, ruang warna, white balance, saturasi (dev)")
     for g in GROUPS:
         print(f"\n--- {g} ---\n" + ranking(df[df.group == g]).round(4).to_string())
 
@@ -58,7 +59,7 @@ def main():
         ("ycrcb", "rasio_luminans"), ("ycrcb", "lab"), ("ycrcb", "rgb_per_kanal"),
         ("ycrcb", "ycrcb_gray_world"), ("ycrcb_sat1.2", "ycrcb"), ("ycrcb_sat1.4", "ycrcb"),
     ])
-    tests.to_csv("results/exp_order_colorspace_wilcoxon.csv", index=False)
+    tests.to_csv(config.EXPERIMENTS_DIR / "order_colorspace_wilcoxon.csv", index=False)
     print("\nWilcoxon:\n" + tests[["a", "b", "metric", "median_diff", "a_wins", "n", "p_value", "better"]]
           .round(4).to_string(index=False))
 

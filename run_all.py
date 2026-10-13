@@ -34,7 +34,7 @@ def quick():
 
     test = set(load_split()["test"])
     pipe = Pipeline(final)
-    out_dir = config.RESULTS_DIR / "demo"
+    out_dir = config.DEMO_DIR
     for p in [p for p in list_pairs() if p.scenario in test][:5]:
         dark = np.array(load_image(p.dark_path))
         ref = np.array(load_image(p.ref_path))
@@ -89,7 +89,7 @@ def main():
     failure_cases.main()
 
     header("Ringkasan")
-    print((config.RESULTS_DIR / "final_test.md").read_text(encoding="utf-8").split("## Per kondisi")[0])
+    print((config.FINAL_DIR / "test.md").read_text(encoding="utf-8").split("## Per kondisi")[0])
     print(f"Audit: {(audit.status == 'LOLOS').sum()}/{len(audit)} pasangan lolos")
     print(f"Selesai dalam {time.time() - t0:.0f} s. Semua hasil di {config.RESULTS_DIR}")
 

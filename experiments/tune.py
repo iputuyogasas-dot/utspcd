@@ -28,7 +28,7 @@ import pandas as pd
 from experiments.common import run_configs
 from src import config, plotstyle
 
-OUT = config.RESULTS_DIR / "tuning"
+OUT = config.TUNING_DIR
 
 # Titik awal dari T29-T31: gamma adaptif di YCrCb, tanpa reduksi derau.
 BASE = {

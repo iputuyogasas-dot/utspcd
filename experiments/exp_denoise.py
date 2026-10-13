@@ -14,6 +14,7 @@ import argparse
 import pandas as pd
 
 from experiments.common import ranking, report, run_configs
+from src import config
 from src.stats import compare_many
 
 CONTRAST = [{"method": "adaptive_gamma", "target": 0.4}]
@@ -49,13 +50,13 @@ def scale_study():
         d["scale"] = scale
         frames.append(d)
     df = pd.concat(frames)
-    df.to_csv("results/exp_denoise_scale.csv", index=False)
+    df.to_csv(config.EXPERIMENTS_DIR / "denoise_scale.csv", index=False)
     piv = df.pivot_table(index=["scale", "method"], columns="condition", values="ssim", aggfunc="mean")
     piv["Semua"] = df.groupby(["scale", "method"]).ssim.mean()
     piv["PSNR"] = df.groupby(["scale", "method"]).psnr.mean()
     piv["time_s"] = df.groupby(["scale", "method"]).time_s.mean()
     print("\nSSIM per skala dan kondisi:\n" + piv.round(4).to_string())
-    piv.round(4).to_csv("results/exp_denoise_scale_summary.csv")
+    piv.round(4).to_csv(config.EXPERIMENTS_DIR / "denoise_scale_summary.csv")
 
 
 def main(argv=None):
@@ -64,15 +65,15 @@ def main(argv=None):
     if ap.parse_args(argv).scale_study:
         return scale_study()
 
-    df = run_configs(CONFIGS, out_csv="exp_denoise.csv")
-    report(df, "exp_denoise", "T30 Perbandingan metode reduksi derau (dev)")
+    df = run_configs(CONFIGS, out_csv="experiments/denoise.csv")
+    report(df, "experiments/denoise", "T30 Perbandingan metode reduksi derau (dev)")
     rank = ranking(df)
     print("\nPeringkat (SSIM, lalu PSNR):\n" + rank.round(4).to_string())
     print("\nSSIM per kondisi:\n" + df.pivot_table(index="method", columns="condition", values="ssim")
           .reindex(rank.index).round(4).to_string())
     denoisers = [m for m in rank.index if m not in ("none", "median_3_scratch")]
     tests = compare_many(df, [("none", denoisers[0]), ("none", "nlm_h3"), ("median_3", "median_3_scratch")])
-    tests.to_csv("results/exp_denoise_wilcoxon.csv", index=False)
+    tests.to_csv(config.EXPERIMENTS_DIR / "denoise_wilcoxon.csv", index=False)
     print("\nWilcoxon:\n" + tests[["a", "b", "metric", "median_diff", "a_wins", "n", "p_value", "better"]]
           .round(4).to_string(index=False))
 

@@ -104,7 +104,7 @@ memberi hasil identik dengan `cv2.medianBlur` di seluruh 30 citra dev.
 
 Setiap tahap divariasikan dengan tahap lain dikunci. Metrik dihitung pada skala 1/4
 untuk 30 citra dev; semua perbandingan berpasangan diuji dengan Wilcoxon
-(`results/wilcoxon_dev.csv`).
+(`results/experiments/wilcoxon_dev.csv`).
 
 ### 6.1 Perbaikan kontras
 

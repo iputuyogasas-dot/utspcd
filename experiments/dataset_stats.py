@@ -2,7 +2,7 @@
 
 Keluaran:
   data/metadata.csv                         EXIF + statistik per file
-  results/dataset_stats.csv                 ringkasan per kondisi
+  results/dataset/dataset_stats.csv                 ringkasan per kondisi
   results/figures/contact_sheet.png         10 skenario × (acuan, K1-K5), apa adanya
   results/figures/contact_sheet_boost.png   sama, citra gelap dikali gain agar rata-ratanya = acuan (hanya visualisasi)
   results/figures/hist_per_condition.png    histogram luminans rata-rata per kondisi
@@ -72,7 +72,8 @@ def summary(df):
         "mean_lum_max": g.mean_lum.max(), "std_lum_mean": g.std_lum.mean(),
         "entropy_mean": g.entropy.mean(),
     }).reindex(["acuan", "K1", "K2", "K3", "K4", "K5"])
-    out.round(2).to_csv(config.RESULTS_DIR / "dataset_stats.csv")
+    config.DATASET_RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    out.round(2).to_csv(config.DATASET_RESULTS_DIR / "dataset_stats.csv")
     return out
 
 
