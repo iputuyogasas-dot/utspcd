@@ -130,5 +130,3 @@ lebih lambat. Lihat [`results/verification/from_scratch.csv`](results/verificati
 - Regio Gatang Akar ([@Regipo](https://github.com/Regipo))
 - Damara Reynaldi ([@damaara](https://github.com/damaara))
 - Okta Pebrianto ([@atkoxf](https://github.com/atkoxf))
-
-
