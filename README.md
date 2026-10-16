@@ -48,7 +48,7 @@ DATASET NEW/
   s10_acuan.jpg  s10_k1.jpg ... s10_k5.jpg
 ```
 
-Tautan unduh: `https://drive.google.com/drive/folders/1Tm-5Zf7-Sblo6xMRi5gqsnMVrV1QAh7C?usp=drive_link`. 
+Tautan unduh: [Google Drive](https://drive.google.com/drive/folders/1Tm-5Zf7-Sblo6xMRi5gqsnMVrV1QAh7C?usp=drive_link).
 
 ## Menjalankan
 
