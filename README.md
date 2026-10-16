@@ -124,4 +124,11 @@ median yang hanya memakai NumPy. Keduanya identik dengan `cv2.equalizeHist` dan
 `cv2.medianBlur` (selisih piksel 0 pada 10 citra dan 57 kasus uji), tetapi 6-207×
 lebih lambat. Lihat [`results/verification/from_scratch.csv`](results/verification/from_scratch.csv).
 
+## Tim
+
+- [@iputuyogasas-dot](https://github.com/iputuyogasas-dot)
+- Regio Gatang Akar ([@Regipo](https://github.com/Regipo))
+- Damara Reynaldi ([@damaara](https://github.com/damaara))
+- Okta Pebrianto ([@atkoxf](https://github.com/atkoxf))
+
 
