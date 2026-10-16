@@ -50,7 +50,7 @@ DATASET NEW/
   s10_acuan.jpg  s10_k1.jpg ... s10_k5.jpg
 ```
 
-Tautan unduh: `[isi tautan Google Drive]`. Contoh citra kecil ada di
+Tautan unduh: ` `https://drive.google.com/drive/folders/1Tm-5Zf7-Sblo6xMRi5gqsnMVrV1QAh7C?usp=drive_link``. 
 [`data/samples/`](data/samples/). Split dev/uji terkunci di
 [`data/split.json`](data/split.json) (per skenario, seed 42).
 
@@ -80,8 +80,7 @@ python -m experiments.dev_stats                  # T33 Wilcoxon untuk keputusan 
 python -m experiments.final_eval                 # T35-T36 evaluasi uji (butuh final.json terkunci)
 python -m experiments.failure_cases              # T37-T38 kasus terburuk
 python -m experiments.fix_eval                   # T39 uji usulan perbaikan
-python -m experiments.figures                    # gambar laporan
-python docs/report/build_report.py               # laporan.html → laporan.pdf
+
 ```
 
 ## Struktur
@@ -110,7 +109,6 @@ results/
   dataset/          audit keselarasan + statistik dataset
   verification/     operasi dari nol vs OpenCV
   figures/          gambar untuk laporan
-docs/               PRD, tasks.json, catatan dataset, alasan parameter, sumber laporan
 audit_dataset.py
 run_all.py
 ```
@@ -130,8 +128,4 @@ median yang hanya memakai NumPy. Keduanya identik dengan `cv2.equalizeHist` dan
 `cv2.medianBlur` (selisih piksel 0 pada 10 citra dan 57 kasus uji), tetapi 6-207×
 lebih lambat. Lihat [`results/verification/from_scratch.csv`](results/verification/from_scratch.csv).
 
-## Penggunaan AI
 
-Dosen mengizinkan penggunaan alat bantu AI. Kode, eksperimen, dan draf laporan
-dibuat dengan bantuan Claude (Anthropic) lewat Claude Code; rinciannya ada di
-Lampiran B laporan.
