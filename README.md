@@ -126,7 +126,7 @@ lebih lambat. Lihat [`results/verification/from_scratch.csv`](results/verificati
 
 ## Tim
 
-- [@iputuyogasas-dot](https://github.com/iputuyogasas-dot)
+- I Putu Yoga Sastrawan ([@iputuyogasas-dot](https://github.com/iputuyogasas-dot))
 - Regio Gatang Akar ([@Regipo](https://github.com/Regipo))
 - Damara Reynaldi ([@damaara](https://github.com/damaara))
 - Okta Pebrianto ([@atkoxf](https://github.com/atkoxf))
