@@ -12,8 +12,7 @@ Hasil pada citra uji (4 skenario, 20 citra, tidak dipakai saat tuning):
 | **Pipeline final** | **17,21 ± 1,90** | **0,749 ± 0,049** | **12,84 ± 2,45** |
 
 Lebih baik dari citra mentah pada 20/20 citra di ketiga metrik (Wilcoxon p < 0,001).
-Rincian per kondisi: [`results/final/test.md`](results/final/test.md). Sumber laporan
-ada di [`docs/report/`](docs/report/); PDF dibuat dengan `python docs/report/build_report.py`.
+Rincian per kondisi: [`results/final/test.md`](results/final/test.md).
 
 ## Pipeline final
 
@@ -24,8 +23,7 @@ RGB ─► [1] perkecil 1/4 (INTER_AREA), RGB→YCrCb
     ─► [4] gabung Y+CrCb → RGB, saturasi ×1,5
 ```
 
-Konfigurasi: [`configs/final.json`](configs/final.json). Alasan tiap parameter:
-[`docs/parameter_rationale.md`](docs/parameter_rationale.md).
+Konfigurasi: [`configs/final.json`](configs/final.json).
 
 ## Instalasi
 
@@ -50,9 +48,7 @@ DATASET NEW/
   s10_acuan.jpg  s10_k1.jpg ... s10_k5.jpg
 ```
 
-Tautan unduh: `[isi tautan Google Drive]`. Contoh citra kecil ada di
-[`data/samples/`](data/samples/). Split dev/uji terkunci di
-[`data/split.json`](data/split.json) (per skenario, seed 42).
+Tautan unduh: `https://drive.google.com/drive/folders/1Tm-5Zf7-Sblo6xMRi5gqsnMVrV1QAh7C?usp=drive_link`. 
 
 ## Menjalankan
 
@@ -80,8 +76,6 @@ python -m experiments.dev_stats                  # T33 Wilcoxon untuk keputusan 
 python -m experiments.final_eval                 # T35-T36 evaluasi uji (butuh final.json terkunci)
 python -m experiments.failure_cases              # T37-T38 kasus terburuk
 python -m experiments.fix_eval                   # T39 uji usulan perbaikan
-python -m experiments.figures                    # gambar laporan
-python docs/report/build_report.py               # laporan.html → laporan.pdf
 ```
 
 ## Struktur
@@ -110,7 +104,7 @@ results/
   dataset/          audit keselarasan + statistik dataset
   verification/     operasi dari nol vs OpenCV
   figures/          gambar untuk laporan
-docs/               PRD, tasks.json, catatan dataset, alasan parameter, sumber laporan
+
 audit_dataset.py
 run_all.py
 ```
@@ -130,8 +124,4 @@ median yang hanya memakai NumPy. Keduanya identik dengan `cv2.equalizeHist` dan
 `cv2.medianBlur` (selisih piksel 0 pada 10 citra dan 57 kasus uji), tetapi 6-207×
 lebih lambat. Lihat [`results/verification/from_scratch.csv`](results/verification/from_scratch.csv).
 
-## Penggunaan AI
 
-Dosen mengizinkan penggunaan alat bantu AI. Kode, eksperimen, dan draf laporan
-dibuat dengan bantuan Claude (Anthropic) lewat Claude Code; rinciannya ada di
-Lampiran B laporan.
